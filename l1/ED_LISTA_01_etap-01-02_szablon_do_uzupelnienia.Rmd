@@ -390,7 +390,7 @@ knitr::kable(tab_korelacje,
 
 ```{r, wykresy_rozrzutu, results='asis'}
 pairs(dane[, vars_ciagle],
-      pch = 19,
+      pch = ".",
       col = rgb(0.2, 0.45, 0.75, 0.25),
       main = "Zależności między zmiennymi ciągłymi")
 ```
