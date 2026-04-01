@@ -1,7 +1,7 @@
 ---
-title: "Szablon raportu"
-author: "Imię i nazwisko autora(ki) raportu,   album 123456"
-date: "2026-03-18"
+title: "Eksploracja Danych -- Lista 1"
+author: "Jan Bryłka ??????, Mikołaj Kapica 272729"
+date: "2026-04-01"
 output:
   pdf_document:
   toc: yes
@@ -40,363 +40,720 @@ library(e1071) # pakiet do m.in. wyznaczania skośności i kurtozy
 Wczytujemy dane z pliku *WA_Fn-UseC_-Telco-Customer-Churn.csv*.
 
 ```{r wczytanie danych}
+dane_raw <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv",
+                     stringsAsFactors = FALSE,
+                     na.strings = c("", " "))
+dane <- dane_raw
+# Cecha `customerID` nie jest przydatna do analizy
+dane$customerID <- NULL
+# Skoro `sum(!complete.cases(dane_raw))` to tylko `11` usuwamy je
+dane <- dane[complete.cases(dane), ]
+dane[] <- lapply(dane, function(x) if (is.character(x)) factor(x) else x)
+# Zamiana zmiennej SeniorCitizen z 0/1 na FALSE/TRUE
+dane$SeniorCitizen <- as.logical(dane$SeniorCitizen)
 
-# wczytanie danych z pliku csv
+vars_ilosciowe <- names(dane)[sapply(dane, is.numeric)]
+vars_jakosciowe <- names(dane)[
+  sapply(dane, function(x) is.factor(x) || is.logical(x))
+]
+vars_ciagle <- c("tenure", "MonthlyCharges", "TotalCharges")
 
-
-# dołączanie zmiennych
-
+str(dane)
 ```
 
-Typy poszczególnych zmiennych można sprawdzić za pomocą funkcji \texttt{str()}.
-
-
+Typy poszczególnych zmiennych można sprawdzić za pomocą funkcji
+\texttt{str()}.
 
 ## Podpunkt (b)
 
 **Jaki jest rozmiar danych (liczba przypadków i cech)?**
 
-Liczba cech wynosi ... a liczba rekordów wynosi ... .
+Plik surowy zawiera `r nrow(dane_raw)` przypadków i `r ncol(dane_raw)`
+cech, natomiast w zbiorze używanym do dalszej analizy pozostaje
+`r nrow(dane)` przypadków i `r ncol(dane)` cech.
 
-Poszczególne cechy to
-
+Poszczególne cechy dzielimy na:
 
 \begin{itemize}
-\item \textbf{gender} (factor; 2 poziomy: Female/Male) - płeć klienta
-\item \textbf{SeniorCitizen} (numeric; zakres: 0-1) - informacja czy klient jest emerytem
-\item ...
+\item zmienne ilościowe: `r paste(vars_ilosciowe, collapse = ", ")`
+\item zmienne jakościowe: `r paste(vars_jakosciowe, collapse = ", ")`
 \end{itemize}
 
+Zmienna \textbf{SeniorCitizen} jest binarnym wskaźnikiem, więc została
+zamieniona na typ logiczny (\texttt{FALSE}/\texttt{TRUE}).
 
+Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
+
+\begin{itemize}
+\item \textbf{customerID} (character) - identyfikator klienta; unikalny kod dla każdego klienta
+\item \textbf{gender} (factor; poziomy: Female, Male) - płeć klienta
+\item \textbf{SeniorCitizen} (logiczny; poziomy: FALSE, TRUE) - informacja, czy klient jest emerytem (oryginalnie kodowane jako 0/1, następnie przekonwertowane na typ logiczny)
+\item \textbf{Partner} (factor; poziomy: No, Yes) - informacja, czy klient ma partnera/partnerkę
+\item \textbf{Dependents} (factor; poziomy: No, Yes) - informacja, czy klient ma osoby na utrzymaniu (dzieci, osoby zależne)
+\item \textbf{tenure} (numeryczny; zakres: `r min(dane$tenure)`-`r max(dane$tenure)`) - liczba miesięcy, przez które klient pozostaje z firmą
+\item \textbf{PhoneService} (factor; poziomy: No, Yes) - informacja, czy klient ma usługę telefoniczną
+\item \textbf{MultipleLines} (factor; poziomy: No, No phone service, Yes) - informacja, czy klient ma wiele linii telefonicznych
+\item \textbf{InternetService} (factor; poziomy: DSL, Fiber optic, No) - dostawca usług internetowych klienta
+\item \textbf{OnlineSecurity} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma zabezpieczenia online
+\item \textbf{OnlineBackup} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma kopię zapasową online
+\item \textbf{DeviceProtection} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma ochronę urządzenia
+\item \textbf{TechSupport} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma wsparcie techniczne
+\item \textbf{StreamingTV} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma streaming TV
+\item \textbf{StreamingMovies} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma streaming filmów
+\item \textbf{Contract} (factor; poziomy: Month-to-month, One year, Two year) - rodzaj umowy klienta
+\item \textbf{PaperlessBilling} (factor; poziomy: No, Yes) - informacja, czy klient korzysta z e-faktur
+\item \textbf{PaymentMethod} (factor; poziomy: Bank transfer (automatic), Credit card (automatic), Electronic check, Mailed check) - metoda płatności klienta
+\item \textbf{MonthlyCharges} (numeryczny; zakres: `r min(dane$MonthlyCharges)`-`r max(dane$MonthlyCharges)`) - miesięczna opłata pobierana od klienta
+\item \textbf{TotalCharges} (numeryczny; zakres: `r min(dane$TotalCharges)`-`r max(dane$TotalCharges)`) - całkowita kwota pobrana od klienta
+\item \textbf{Churn} (factor; poziomy: No, Yes) - informacja, czy klient zrezygnował z usług (tak/nie)
+\end{itemize}
 
 **Jakie są typy poszczególnych cech?**
 
-```{r}
-# Dzielimy zmienne na [jakosciowe] i [ilosciowe]
+```{r, typy_zmiennych, echo=FALSE, results='asis'}
+tab_typy <- data.frame(
+  Zmienna = names(dane),
+  Typ = ifelse(names(dane) %in% vars_ilosciowe, "ilościowa", "jakościowa"),
+  check.names = FALSE
+)
+cat("\\begin{center}\n")
+knitr::kable(tab_typy,
+             format = "latex")
+cat("\n\\end{center}")
+```
 
+Zmienne ilościowe to `r paste(vars_ilosciowe, collapse = ", ")`.
+
+Zmienne jakościowe to `r paste(vars_jakosciowe, collapse = ", ")`.
+
+**Czy wszystkie cechy występujące w danych będą przydatne w analizie? W
+szczególności: czy w danych występuje cecha(y), które pełnią rolę
+identyfikatorów klientów? Jeżeli tak, to wskaż te cechy i usuń je przed
+dalszą analizą.**
+
+```{r}
+liczba_unikalnych_id <- length(unique(dane_raw$customerID))
+liczba_unikalnych_id
+```
+
+Zmienna \texttt{customerID} ma `r liczba_unikalnych_id` unikalnych
+wartości, więc pełni rolę identyfikatora klientów i nie wnosi informacji
+do analizy.
+
+```{r}
+## customerID został usunięty przy tworzeniu danych analitycznych
 
 ```
 
-Zmienne ilościowe to ... .
-
-Zmienne jakościowe to ... .
-
-\kb{UWAGA: Może warto użyć np. środowiska itemize do czytelniejszego
-           przedstawienia nazw tych zmiennych?}
-
-
-
-
-**Czy wszystkie cechy występujące w danych będą przydatne w analizie? W szczególności: czy w danych występuje cecha(y), które pełnią rolę identyfikatorów klientów? Jeżeli tak, to  wskaż te cechy i usuń je przed dalszą analizą.**
+**Czy w danych występują brakujące obserwacje? Jeżeli tak, to jak są one
+kodowane?**
 
 ```{r}
-# Sprawdzamy liczbę poziomów dla cechy ...
+liczba_brakow <- sum(is.na(dane_raw))
+liczba_brakow
 
-
+tab_na <- as.data.frame(which(is.na(dane_raw), arr.ind = TRUE))
+colnames(tab_na) <- c("Numer wiersza", "Numer cechy")
+tab_na$Cecha <- colnames(dane_raw)[tab_na[["Numer cechy"]]]
+tab_na <- tab_na[, c("Numer wiersza", "Cecha")]
 ```
 
-Zmienna .... pełni zatem rolę identyfikatora klientów więc ją usuwamy.
-
-```{r}
-# usuwamy cechę ...
-
-```
-
-
-
-
-
-**
-Czy w danych występują brakujące obserwacje? Jeżeli tak, to jak są
-one kodowane?
-**
-
-```{r}
-# liczbe brakujacych obserwacji
-
-
-# połozenie brakujacych obserweacji
-
-
-```
-\kb{UWAGA: Warto tę tabelę dobrze sformatować np. tworząc ją przy pomocy xtable
-    i nazywając jej kolumny np. "Numer wiersza", "Cecha"}
-
-Informacja na temat braków danych (numery wierszy i nazwy cech) są podane
-w tabeli \ref{tab.na.dane}.
+Informacja na temat braków danych (numery wierszy i nazwy cech) są
+podane w tabeli \ref{tab:na.dane}.
 
 ```{r Braki danych, echo=FALSE, results='asis'}
-# tab.na <- which(is.na(dane), arr.ind = TRUE)
-# tab.na[,2] <- colnames(dane)[tab.na[,2]]
-#
-# colnames(tab.na) <- c("Wiersz","Cecha")
-# rownames(tab.na) <- NULL
-#
-# xtab.na <- xtable(tab.na,
-#                   caption = "Braki w danych.",
-#                   label = "tab.na.dane")
-# print(xtab.na,
-#       type="latex",
-#       table.placement = "H",
-#       comment=FALSE,
-#       include.rownames=FALSE)
+knitr::kable(tab_na,
+             format = "latex",
+             caption = "Braki w danych.",
+             label = "na.dane")
 ```
-
 
 ```{r}
-# usuwamy wiersze zawierajace NA
-
-
-# ponownie dołączamy zmienne
-
+dane <- dane[complete.cases(dane), ]
+dane[] <- lapply(dane, function(x) if (is.character(x)) factor(x) else x)
+dane$SeniorCitizen <- as.logical(dane$SeniorCitizen)
 ```
 
-Liczba usuniętych brakujących obserwacji to ... .
+Liczba usuniętych brakujących obserwacji to
+`r nrow(dane_raw) - nrow(dane)`.
 
-**Czy w danych występują nietypowe wartości (np. niestandardowe kodowanie
-                                                 brakujących obserwacji)?**
+**Czy w danych występują nietypowe wartości (np. niestandardowe
+kodowanie brakujących obserwacji)?**
 
 ```{r}
-# Sprawdzamy wartośći przyjmowane prze cechę polecenim unique
-# przykładowo: unique(MultipleLines).
-
-# Jeśli lista tych wartości pokrywa się z liczbą poziomów to jest ok
-# poziomy sprawdzamy poleceniem levels
-# przykładowo: levels(MultipleLines).
-
-# Powtarzamy dla wszystkich cech, by upewnić się czy
-# nie ma niestandardowego kodowania brakujacych obserwacji
+odstepstwa <- lapply(names(dane)[sapply(dane, is.factor)], function(v) {
+  setdiff(unique(as.character(dane[[v]])), levels(dane[[v]]))
+})
+names(odstepstwa) <- names(dane)[sapply(dane, is.factor)]
+odstepstwa[sapply(odstepstwa, length) > 0]
 ```
 
-Wniosek: brak (?)
-
+Wniosek: brak niestandardowego kodowania brakujących obserwacji; jedyne
+braki w surowym pliku były zapisane jako puste pola w kolumnie
+\texttt{TotalCharges}, które po wczytaniu zostały zamienione na
+\texttt{NA}.
 
 # Etap 2: Analiza opisowa - wskaźniki sumaryczne i wykresy
 
 ## Podpunkt (a)
 
-**
-Wyznacz podstawowe wskaźniki sumaryczne (miary położenia i rozproszenia)
-dla poszczególnych cech/zmiennych.
-**
+**Wyznacz podstawowe wskaźniki sumaryczne (miary położenia i
+rozproszenia) dla poszczególnych cech/zmiennych.**
 
-Wartości miar położenia, rozproszenia oraz koncentracji i asymetrii dla zmiennej
-\textbf{MonthlyCharges} można znaleźć w Tabelach \ref{tab:tab1}, \ref{tab:tab2}
-oraz \ref{tab:tab3}.
+Wartości miar położenia, rozproszenia oraz koncentracji i asymetrii dla
+zmiennej \textbf{MonthlyCharges} można znaleźć w tabelach
+\ref{tab:tab1}, \ref{tab:tab2} oraz \ref{tab:tab3}. Dla pełniejszego
+obrazu w tabeli \ref{tab:zmienne.ilosciowe} zestawiono analogiczne miary
+dla wszystkich zmiennych ilościowych.
+
+```{r, miary_zmienne_ilosciowe, echo=FALSE, results='asis'}
+tab_zmienne_ilosciowe <- do.call(rbind, lapply(vars_ilosciowe, function(v) {
+  x <- dane[[v]]
+  data.frame(
+    Zmienna = v,
+    Min = min(x),
+    Mediana = median(x),
+    Srednia = mean(x),
+    Max = max(x),
+    SD = sd(x),
+    IQR = IQR(x),
+    Skosnosc = e1071::skewness(x),
+    Kurtoza = e1071::kurtosis(x),
+    check.names = FALSE
+  )
+}))
+
+knitr::kable(tab_zmienne_ilosciowe,
+             format = "latex",
+             digits = 2,
+             caption = "Podstawowe miary opisowe dla zmiennych ilościowych.",
+             label = "zmienne.ilosciowe")
+```
 
 ```{r, miary_polozenia, echo=FALSE, results='asis'}
-# miary położenia czyli
-# srednia,
-# mediana,
-# kwartyle ...
+df1 <- data.frame(
+  Miara = c(
+    "Minimum",
+    "1. kwartyl",
+    "Mediana",
+    "Średnia",
+    "3. kwartyl",
+    "Maksimum"
+  ),
+  Wartość = as.numeric(
+    summary(dane$MonthlyCharges)[
+      c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.", "Max.")
+    ]
+  )
+)
 
-# df1 <- t(as.matrix(summary(MonthlyCharges)))
-# rownames(df1) <- c("MonthlyCharges")
-# tab1 <- xtable(df1,
-#                caption=paste0("Miary położenia dla zmiennej ","MonthlyCharges"),
-#                label="tab:tab1")
-# print(tab1, comment=FALSE)
+knitr::kable(df1,
+             format = "latex",
+             digits = 2,
+             caption = "Miary położenia dla zmiennej MonthlyCharges.",
+             label = "tab1")
 ```
-
 
 ```{r, miary_rozproszenia, echo=FALSE, results='asis'}
-# miary rozproszenia czyli
-# rozstep miedzykwartylowy,
-# odchylenie standardowe,
-# wariancja...
+df2 <- data.frame(
+  Miara = c(
+    "Odchylenie standardowe",
+    "Wariancja",
+    "Rozstęp międzykwartylowy",
+    "Rozstęp"
+  ),
+  Wartość = c(
+    sd(dane$MonthlyCharges),
+    var(dane$MonthlyCharges),
+    IQR(dane$MonthlyCharges),
+    max(dane$MonthlyCharges) - min(dane$MonthlyCharges)
+  )
+)
 
-# df2 <- matrix(c(sd(MonthlyCharges),
-#                 IQR(MonthlyCharges),
-#                 max(MonthlyCharges)-min(MonthlyCharges)),
-#               nrow=1, ncol=3)
-# colnames(df2) <- c("odchylenie standardowe", "rozstęp miedzykwartylowy", "rozstęp")
-# rownames(df2) <- c("MonthlyCharges")
-# tab2 <- xtable(df2,
-#                caption=paste0("Miary rozproszenia dla zmiennej","MonthlyCharges"),
-#                label="tab:tab2")
-# print(tab2, comment=FALSE)
+knitr::kable(df2,
+             format = "latex",
+             digits = 2,
+             caption = "Miary rozproszenia dla zmiennej MonthlyCharges.",
+             label = "tab2")
 ```
-
 
 ```{r, miary_koncentracji_i_asymetrii, echo=FALSE, results='asis'}
-library(e1071)# pakiet z funkcjami skewness oraz kurtosis
+df3 <- data.frame(
+  Miara = c("Skośność", "Kurtoza"),
+  Wartość = c(e1071::skewness(dane$MonthlyCharges),
+              e1071::kurtosis(dane$MonthlyCharges))
+)
 
-# df3 <- data.frame(skew = skewness(MonthlyCharges),
-#                       curt = kurtosis(MonthlyCharges))
-# names(df3) <- c("skośność", "kurtoza")
-# rownames(df3) <- c("MonthlyCharges")
-# tab3 <- xtable(df3,
-#                caption=paste0("Miary koncentracji i asymetrii dla zmiennej ",
-#                               "MonthlyCharges"),
-#                 label="tab:tab3")
-# print(tab3, comment=FALSE)
+knitr::kable(df3,
+             format = "latex",
+             digits = 3,
+             caption = "Miary koncentracji i asymetrii dla zmiennej MonthlyCharges.", # nolint: line_length_linter.
+             label = "tab3")
 ```
 
-\kb{
+\textcolor{blue}{
 UWAGA: Opisując wyniki można zwrócić uwagę m.in. na następujące kwestie
+Oczywiście to nie wszystkie istotne pytania, na które warto odpowiedzieć. Mozna też np. postawić pewne przypuszczenia i spróbować je zweryfikować za pomocą metod graficznych.
+}
+
+
 \begin{itemize}
   \item Jak ma się średnia do mediany tzn. co jest większe? Co to może sugerować?
+
+Średnia wynosi `r mean(dane$MonthlyCharges)` a mediana `r median(dane$MonthlyCharges)`.
+Mediana jest większa od średniej.
+Sugeruje to lewostronną asymetrię rozkładu.
+Duża liczba obserwacji o niskich wartościach (szczyt wokół 20) silniej zaniża średnią arytmetyczną niż medianę.
+
+```{r, rozklad_monthlycharges, echo=FALSE, fig.cap="Rozkład zmiennej MonthlyCharges", fig.height=3.5}
+plot(density(dane$MonthlyCharges, na.rm = TRUE),
+     main = "Rozkład zmiennej MonthlyCharges",
+     xlab = "Wartość",
+     ylab = "Prawdopodobieństwo")
+```
+
   \item Czy medianie bliżej do pierwszego czy do trzeciego kwartyla?
+
+Mediana jest bliżej do trzeciego kwartyla.
+
   \item Czy pierwszemu kwartylowi bliżej do minimum, czy może trzeciemu do maksimum?
+
+Pierwszy kwartyl jest bliżej do minimum niż trzeciemu do maksimum.
+
   \item Skąd może wynikać duża/mała rozpiętośc przyjmowanych wartości?
+
+Rozpiętość jest duża. Wynika z tego że bardzo dużo ofert ma wartość bliską 20 i 80.
+
   \item Jak mozna zinterpretować otrzymaną wartość odchylenia standardowego?
+
+Odchylenie standardowe wynosi `r sd(dane$MonthlyCharges)` i wskazuje że dane są mocno rozrzucone wokół średniej.
+
   \item Co mówią nam otrzymane współczynniki skośności i kurtozy na temat rozkładu?
+
+Zarówno skośność jak i kurtoza są ujemne.
+Wskazuje to na lewostronną asymetrię rozkładu (średnia jest mniejsza od mediany) oraz że intensywność wartości skrajnych jest mniejsza niż w przypadku rozkładu normalnego ("ogony" rozkładu są węższe).
+
 \end{itemize}
-      Oczywiście to nie wszystkie istotne pytania, na które warto odpowiedzieć. Mozna też np. postawić pewne przypuszczenia i spróbować je zweryfikować za pomocą metod graficznych.
-}
 
 ## Podpunkt (b)
 
-**
-Zilustruj rozkład poszczególnych cech/zmiennych za pomocą odpowiednich wykresów
-(wykresy słupkowe, histogramy, wykresy pudełkowe itp.).
-**
+**Zilustruj rozkład poszczególnych cech/zmiennych za pomocą odpowiednich
+wykresów (wykresy słupkowe, histogramy, wykresy pudełkowe itp.).**
 
 Zaczynamy od wykresów dla zmiennych ilościowych.
+
 ```{r, zmienne_ilosciowe, echo=FALSE, fig.cap=c("Histogram dla zmiennej MonthlyCharges","Wykres pudełkowy dla zmiennej MonthlyCharges"), fig.height=3}
-
-# histogram
-
-
-# wykres pudełkowy (boxplot)
-
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(dane$MonthlyCharges,
+     breaks = 30,
+     col = "skyblue",
+     border = "white",
+     main = "MonthlyCharges",
+     xlab = "Opłata miesięczna")
+boxplot(dane$MonthlyCharges,
+        horizontal = TRUE,
+        col = "tan",
+        main = "MonthlyCharges",
+        xlab = "Opłata miesięczna")
 ```
 
 A teraz wykresy dla dla zmiennych jakościowych.
-```{r, zmienne_jakosciowe, echo=FALSE, fig.cap=c("Wykres słupkowy dla zmiennej Contract","wykres kołowy dla zmiennej Contract"), fig.height=3.5}
 
-# wykres słupkowy (barplot)
-
-
-# wykres kołowy (pie)
-
+```{r, zmienne_jakosciowe, echo=FALSE, fig.cap="Wykres słupkowy i kołowy dla zmiennej Contract", fig.height=5}
+tab_contract <- table(dane$Contract)
+par(mfrow = c(1, 2), mar = c(8, 4, 2, 1), oma = c(0, 0, 3, 0))
+barplot(tab_contract,
+        col = "steelblue",
+        ylab = "Liczność",
+        las = 2)
+lab_contract <- paste0(
+  names(tab_contract), "\n",
+  round(100 * prop.table(tab_contract), 1), "%"
+)
+pie(tab_contract,
+  labels = NA,
+  col = c("#66C2A5", "#FC8D62", "#8DA0CB")
+)
+angles <- 2 * pi * (cumsum(tab_contract) - tab_contract / 2) / sum(tab_contract)
+text(1.4 * cos(angles), 1.4 * sin(angles), labels = lab_contract, xpd = TRUE)
+mtext("Contract", outer = TRUE, line = 1, cex = 1.3, font = 2)
 ```
 
-
-    Dla zmiennych jakościowych można również wykorzystać tabele liczności
-    jak np. Tabela \ref{tab.licz.contract}.
+Dla zmiennych jakościowych można również wykorzystać tabele liczności
+jak np. tabela \ref{tab:licz.contract}.
 
 ```{r, zmienne_jakosciowe_tabele_licznosci, results='asis'}
-# tabela liczności za pomocą xtable w pdf
+tab_contract <- table(dane$Contract)
+tab_contract_df <- data.frame(
+  Contract = names(tab_contract),
+  Liczność = as.integer(tab_contract),
+  Procent = as.numeric(round(100 * prop.table(tab_contract), 2)),
+  check.names = FALSE
+)
 
-# tab.contract <- table(Contract)
-# xtab.contract <- xtable(tab.contract,
-#                         caption = "Tabela liczności dla cechy Contract.",
-#                         label = "tab.licz.contract")
-# print(xtab.contract, table.placement = "H", comment=FALSE)
+knitr::kable(tab_contract_df,
+             format = "latex",
+             caption = "Tabela liczności dla cechy Contract.",
+             label = "licz.contract")
 ```
 
 ## Podpunkt (c)
 
-**
-Wykorzystując wykresy rozrzutu dla par zmiennych ciągłych, przeanalizuj czy występują istotne (np. liniowe) zależności pomiędzy zmiennymi.
-**
+**Wykorzystując wykresy rozrzutu dla par zmiennych ciągłych,
+przeanalizuj czy występują istotne (np. liniowe) zależności pomiędzy
+zmiennymi.**
 
 ```{r}
-# współczynnik korelacji
-
+tab_korelacje <- round(cor(dane[, vars_ciagle]), 3)
+knitr::kable(tab_korelacje,
+             format = "latex",
+             caption = "Macierz korelacji dla zmiennych ciągłych.",
+             label = "korelacje")
 ```
 
-\kb{UWAGA: Te wyniki powinny być odpowiednio zaprezentowane
-      w dobrze sformatowanej tabeli (zobacz poprzednie chunki).}
-
 ```{r, wykresy_rozrzutu, results='asis'}
-# wykres rozrzutu dla pary zmiennych ilościowych ciągłych
-
+pairs(dane[, vars_ciagle],
+      pch = 19,
+      col = rgb(0.2, 0.45, 0.75, 0.25),
+      main = "Zależności między zmiennymi ciągłymi")
 ```
 
 ## Podpunkt (d)
 
-**Zinterpretuj otrzymane rezultaty, w szczególności odpowiadając na pytania:**
+**Zinterpretuj otrzymane rezultaty, w szczególności odpowiadając na
+pytania:**
 
-**
-(1) Jaki jest zakres możliwych wartości dla poszczególnych zmiennych?
-**
+**(1) Jaki jest zakres możliwych wartości dla poszczególnych
+zmiennych?**
 
+Zakresy najważniejszych zmiennych są następujące: \texttt{SeniorCitizen}
+przyjmuje wartości \texttt{FALSE} lub \texttt{TRUE} (oryginalnie 0/1),
+\texttt{tenure} mieści się w przedziale od 1 do 72 miesięcy,
+\texttt{MonthlyCharges} od 18.25 do 118.75, a
+\texttt{TotalCharges} od 18.80 do 8684.80. Zmienne jakościowe przyjmują
+natomiast skończony zbiór kategorii opisujących płeć, sytuację rodzinną,
+rodzaj usługi internetowej, pakiet umowy oraz sposób płatności.
 
+**(2) W przypadku zmiennych ilościowych:**\newline i. Czy wszystkie
+zmienne mają rozkład symetryczny?\newline ii. Które cechy charakteryzują
+się największą zmiennością?
 
+<!-- ```{r asymetria_i_zmiennosc, echo=TRUE}                                    -->
+<!-- skosnosci <- sapply(vars_ciagle, function(v) e1071::skewness(dane[[v]]))   -->
+<!--                                                                            -->
+<!-- srednie_vs_mediany <- do.call(rbind, lapply(vars_ciagle, function(v) {     -->
+<!--   data.frame(                                                              -->
+<!--     Zmienna = v,                                                           -->
+<!--     Srednia = round(mean(dane[[v]]), 2),                                   -->
+<!--     Mediana = round(median(dane[[v]]), 2),                                 -->
+<!--     Roznica_sr_minus_med = round(mean(dane[[v]]) - median(dane[[v]]), 2)   -->
+<!--   )                                                                        -->
+<!-- }))                                                                        -->
+<!--                                                                            -->
+<!-- zmiennosc <- do.call(rbind, lapply(vars_ciagle, function(v) {              -->
+<!--   x <- dane[[v]]                                                           -->
+<!--   data.frame(                                                              -->
+<!--     Zmienna = v,                                                           -->
+<!--     SD      = round(sd(x), 2),                                             -->
+<!--     Rozstep = round(max(x) - min(x), 2)                                    -->
+<!--   )                                                                        -->
+<!-- }))                                                                        -->
+<!-- ```                                                                        -->
 
+Nie, nie wszystkie zmienne mają rozkład symetryczny. \texttt{tenure}
+jest dość bliska symetrii, choć z lekką prawostronną asymetrią.
+\texttt{MonthlyCharges} ma nieznaczną lewostronną asymetrię, co widać po
+tym, że średnia jest odrobinę mniejsza od mediany. Z kolei
+\texttt{TotalCharges} jest wyraźniej prawostronnie skośna, ponieważ
+wielu klientów ma umiarkowane łączne opłaty, a niewielka grupa bardzo
+długo korzysta z usług i generuje dużo większe sumy.
 
+Największą zmiennością bezwzględną charakteryzuje się
+\texttt{TotalCharges} (największe odchylenie standardowe i rozstęp), a
+następnie \texttt{tenure}. \texttt{MonthlyCharges} są mniej rozproszone,
+ale nadal pokazują zauważalny zakres wartości.
 
-**
-(2) W przypadku zmiennych ilościowych:\newline
-    i. Czy wszystkie zmienne mają rozkład symetryczny?\newline
-    ii. Które cechy charakteryzują się największą zmiennością?
-**
+**(3) W przypadku zmiennych jakościowych:**\newline i. Co można
+powiedzieć o częstości przyjmowania poszczególnych kategorii?
 
+<!-- ```{r czestosci_jakosciowe, echo=TRUE}                 -->
+<!-- round(prop.table(table(dane$gender)) * 100, 1)         -->
+<!-- round(prop.table(table(dane$Partner)) * 100, 1)        -->
+<!-- round(prop.table(table(dane$Dependents)) * 100, 1)     -->
+<!-- round(prop.table(table(dane$PhoneService)) * 100, 1)   -->
+<!-- round(prop.table(table(dane$Contract)) * 100, 1)       -->
+<!-- round(prop.table(table(dane$PaymentMethod)) * 100, 1)  -->
+<!-- round(prop.table(table(dane$OnlineSecurity)) * 100, 1) -->
+<!-- round(prop.table(table(dane$TechSupport)) * 100, 1)    -->
+<!-- ```                                                    -->
 
-
-
-
-**
-(3) W przypadku zmiennych jakościowych:\newline
-      i. Co można powiedzieć o częstości przyjmowania poszczególnych kategorii?
-**
-
-
-
-
-
-
-
-
-
+Rozkłady cech jakościowych są dość nierównomierne. Cechy \texttt{gender} i
+\texttt{Partner} są prawie idealnie zbilansowana, ale już \texttt{Dependents}
+częściej przyjmuje wartość \texttt{No}. Zdecydowana
+większość klientów ma \texttt{PhoneService == Yes}. Najbardziej
+popularnym typem umowy jest \texttt{Month-to-month}, a wśród sposobów
+płatności dominuje \texttt{Electronic check}. W wielu usługach
+dodatkowych (np. \texttt{OnlineSecurity}, \texttt{TechSupport})
+przeważają odpowiedzi \texttt{No} lub \texttt{No internet service}, co
+sugeruje, że spora część klientów korzysta tylko z podstawowego pakietu
+usług.
 
 # Etap 3: Analiza opisowa z podziałem na grupy
 
 ## Podpunkt (a)
 
-**
-Przeprowadź analizę opisową, podobnie jak w etapie 2 (wyznaczając wskaźniki
-opisowe i podstawowe wykresy), tym razem jednak z podziałem na dwie grupy:\newline
-grupa 1: Churn==’Yes’ – grupa klientów, którzy odeszli (zrezygnowali), \newline
-grupa 2: Churn==’No’ – grupa lojalnych klientów (korzystają dalej z usług firmy).
-**
+**Przeprowadź analizę opisową, podobnie jak w etapie 2 (wyznaczając
+wskaźniki opisowe i podstawowe wykresy), tym razem jednak z podziałem na
+dwie grupy:**\newline grupa 1: Churn==’Yes’ – grupa klientów, którzy
+odeszli (zrezygnowali), \newline grupa 2: Churn==’No’ – grupa lojalnych
+klientów (korzystają dalej z usług firmy).
 
+W grupach Churn == Yes i Churn == No porównujemy przede wszystkim
+rozkłady zmiennych ilościowych oraz cech jakościowych. Aby wnioski z
+podpunktu (b) nie opierały się wyłącznie na oglądzie wykresów,
+zestawiono także podstawowe miary opisowe i proste porównania udziałów
+wybranych kategorii. Dla zmiennych ilościowych w tabeli
+\ref{tab:churn.num} podano średnie, mediany oraz odchylenia standardowe,
+natomiast dla zmiennych jakościowych w tabeli \ref{tab:churn.cat.udzial}
+pokazano udziały wybranych, najbardziej charakterystycznych kategorii w
+obu grupach oraz różnicę tych udziałów wyrażoną w punktach
+procentowych. Dzięki temu wnioski z podpunktu (b) mają bezpośrednie
+oparcie w liczbach. Tabela \ref{tab:churn.num} potwierdza, że klienci
+odchodzący mają krótszy staż, wyższe miesięczne opłaty i niższe łączne
+opłaty.
 
+```{r miary_grupy_churn, echo=FALSE, results='asis'}
+tab_churn_num <- do.call(rbind, lapply(vars_ilosciowe, function(v) {
+  x_no <- dane[[v]][dane$Churn == "No"]
+  x_yes <- dane[[v]][dane$Churn == "Yes"]
+  n_no <- length(x_no)
+  n_yes <- length(x_yes)
+  data.frame(
+    Zmienna = v,
+    `Srednia (No)` = mean(x_no),
+    `Srednia (Yes)` = mean(x_yes),
+    `Mediana (No)` = median(x_no),
+    `Mediana (Yes)` = median(x_yes),
+    `SD (No)` = sd(x_no),
+    `SD (Yes)` = sd(x_yes),
+    check.names = FALSE
+  )
+}))
+
+cat("\\begin{table}[!h]\\centering\n")
+cat("\\resizebox{\\textwidth}{!}{%\n")
+cat(knitr::kable(tab_churn_num,
+                 format = "latex",
+                 digits = 2))
+cat("}\n")
+cat("\\caption{Miary opisowe zmiennych ilościowych w grupach Churn.}\n")
+cat("\\label{tab:churn.num}\n")
+cat("\\end{table}\n")
+```
+
+```{r wykresy_churn_num, echo=FALSE, fig.cap="Boxploty zmiennych tenure, MonthlyCharges i TotalCharges względem Churn", fig.height=3.5}
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+boxplot(tenure ~ Churn, data = dane, col = c("#A6CEE3", "#FB9A99"), main = "tenure", ylab = "Miesiące")
+boxplot(MonthlyCharges ~ Churn, data = dane, col = c("#A6CEE3", "#FB9A99"), main = "MonthlyCharges", ylab = "Opłata miesięczna")
+boxplot(TotalCharges ~ Churn, data = dane, col = c("#A6CEE3", "#FB9A99"), main = "TotalCharges", ylab = "Łączne opłaty")
+```
+
+```{r wykresy_churn_cat, echo=FALSE, fig.cap="Porównanie Contract oraz InternetService względem Churn", fig.height=3.5, fig.width=8, out.width='\\linewidth', fig.align='center'}
+contract_churn <- prop.table(table(dane$Contract, dane$Churn), 2)
+internet_churn <- prop.table(table(dane$InternetService, dane$Churn), 2)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+barplot(contract_churn,
+        beside = TRUE,
+        col = c("#66C2A5", "#FC8D62", "#8DA0CB"),
+        legend.text = rownames(contract_churn),
+        args.legend = list(x = "topleft", bty = "n", cex = 0.7),
+        main = "Contract vs Churn",
+        cex.main = 0.9,
+        ylim = c(0, 1.15),
+        ylab = "Udział w grupie")
+barplot(internet_churn,
+        beside = TRUE,
+        col = c("#66C2A5", "#FC8D62", "#8DA0CB"),
+        legend.text = rownames(internet_churn),
+        args.legend = list(x = "topleft", bty = "n", cex = 0.7),
+        main = "InternetService vs Churn",
+        cex.main = 0.9,
+        ylim = c(0, 1.15),
+        ylab = "Udział w grupie")
+```
+
+```{r tabela_churn_cat, echo=FALSE, results='asis'}
+udzial_kategorii <- function(zmienna, kategoria) {
+  tab <- prop.table(table(dane[[zmienna]], dane$Churn), 2)
+  c(
+    tab[kategoria, "No"],
+    tab[kategoria, "Yes"]
+  )
+}
+
+tab_churn_cat_udzial <- rbind(
+  data.frame(
+    Zmienna = "Contract",
+    Kategoria = "Month-to-month",
+    `Udział No [%]` = 100 * udzial_kategorii("Contract", "Month-to-month")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("Contract", "Month-to-month")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "InternetService",
+    Kategoria = "Fiber optic",
+    `Udział No [%]` = 100 * udzial_kategorii("InternetService", "Fiber optic")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("InternetService", "Fiber optic")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "OnlineSecurity",
+    Kategoria = "Yes",
+    `Udział No [%]` = 100 * udzial_kategorii("OnlineSecurity", "Yes")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("OnlineSecurity", "Yes")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "TechSupport",
+    Kategoria = "Yes",
+    `Udział No [%]` = 100 * udzial_kategorii("TechSupport", "Yes")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("TechSupport", "Yes")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "PaperlessBilling",
+    Kategoria = "Yes",
+    `Udział No [%]` = 100 * udzial_kategorii("PaperlessBilling", "Yes")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("PaperlessBilling", "Yes")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "PaymentMethod",
+    Kategoria = "Electronic check",
+    `Udział No [%]` = 100 * udzial_kategorii("PaymentMethod", "Electronic check")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("PaymentMethod", "Electronic check")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "gender",
+    Kategoria = "Female",
+    `Udział No [%]` = 100 * udzial_kategorii("gender", "Female")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("gender", "Female")[2],
+    check.names = FALSE
+  ),
+  data.frame(
+    Zmienna = "PhoneService",
+    Kategoria = "Yes",
+    `Udział No [%]` = 100 * udzial_kategorii("PhoneService", "Yes")[1],
+    `Udział Yes [%]` = 100 * udzial_kategorii("PhoneService", "Yes")[2],
+    check.names = FALSE
+  )
+)
+
+tab_churn_cat_udzial$`Różnica [p.p.]` <-
+  tab_churn_cat_udzial$`Udział Yes [%]` - tab_churn_cat_udzial$`Udział No [%]`
+
+tab_churn_cat_udzial <- tab_churn_cat_udzial[
+  order(-abs(tab_churn_cat_udzial$`Różnica [p.p.]`)),
+]
+row.names(tab_churn_cat_udzial) <- NULL
+
+knitr::kable(tab_churn_cat_udzial,
+             format = "latex",
+             digits = 1,
+             caption = "Udział charakterystycznych kategorii wybranych zmiennych jakościowych w grupach Churn = No i Churn = Yes oraz różnica tych udziałów w punktach procentowych.",
+             label = "churn.cat.udzial")
+```
+
+Tabela \ref{tab:churn.cat.udzial} pokazuje wprost, dla których cech
+jakościowych różnice między grupami są największe: im większa
+bezwzględna wartość różnicy udziałów, tym wyraźniej dana kategoria
+odróżnia klientów odchodzących od pozostających. Widać tu m.in. dużo
+większy udział umów month-to-month oraz płatności electronic check wśród
+klientów odchodzących.
+
+Łącznie tabele i wykresy pozwalają wskazać cechy, które najwyraźniej
+odróżniają obie grupy bez odwoływania się do bardziej zaawansowanych
+miar. W przypadku zmiennych ilościowych najbardziej czytelne różnice
+widać dla `tenure`: klienci odchodzący mają wyraźnie krótszy staż niż
+klienci pozostający. Różnice dla `MonthlyCharges` i `TotalCharges` są
+również widoczne, ale mniej jednoznaczne niż dla długości relacji z
+firmą. Wśród zmiennych jakościowych szczególnie wyraźnie odróżniają się
+typ umowy, korzystanie z usług bezpieczeństwa i wsparcia technicznego,
+rodzaj internetu oraz sposób płatności.
 
 ## Podpunkt (b)
 
-**
-Analizując wyniki z podpunktu a), odpowiedz na pytanie:\newline
-które ze zmiennych wykazują największe zróżnicowanie wartości/rozkładu w grupach,\newline
-tzn. pozwalają na najlepsze rozróżnienie klientów z dwóch grup?
-**
+**Analizując wyniki z podpunktu a), odpowiedz na pytanie:**\newline
+które ze zmiennych wykazują największe zróżnicowanie wartości/rozkładu w
+grupach,\newline tzn. pozwalają na najlepsze rozróżnienie klientów z
+dwóch grup?
 
-
-
-
-
-
-
-
-
-
+Na podstawie tabel \ref{tab:churn.num} oraz \ref{tab:churn.cat.udzial}
+widać, że do cech najsilniej różnicujących grupy należą `Contract`,
+`OnlineSecurity`, `TechSupport`, `InternetService`,
+`PaymentMethod` oraz `PaperlessBilling`. Spośród zmiennych ilościowych
+najsilniej grupy rozróżnia `tenure`, a słabiej, ale nadal wyraźnie,
+także `MonthlyCharges` i `TotalCharges`. Klienci odchodzący
+zdecydowanie częściej mają umowy
+month-to-month, krótszy staż, wyższe miesięczne opłaty i znacznie
+rzadziej korzystają z usług bezpieczeństwa oraz wsparcia technicznego.
+Jednocześnie ich `TotalCharges` są przeciętnie niższe, co jest spójne z
+krótszym okresem pozostawania w firmie. Zmiennymi słabo rozróżniającymi
+grupy są natomiast `gender` oraz `PhoneService`.
 
 # Etap 4: Podsumowanie - wnioski z przeprowadzonej analizy
 
-
 ## Podpunkt (a)
 
-**
-Podsumuj krótko wyniki uzyskane w etapach 1-3.\newline
-Jakie wnioski można wyciągnąć na podstawie przeprowadzonych analiz?
-**
+**Podsumuj krótko wyniki uzyskane w etapach 1-3.**\newline Jakie wnioski
+można wyciągnąć na podstawie przeprowadzonych analiz?
+
+W etapie 1 przygotowano dane do analizy: usunięto identyfikator
+`customerID` oraz 11 brakujących obserwacji w kolumnie `TotalCharges`.
+Ostatecznie do dalszej analizy wykorzystano 7032 rekordy i 20 cech. Etap
+2 pokazał, że rozkłady zmiennych ilościowych nie są idealnie
+symetryczne, a część cech jakościowych ma wyraźnie niezrównoważone
+kategorie. Etap 3 pokazał, że klientów odchodzących najsilniej
+odróżniają: krótszy staż, typ umowy, wybrane cechy usług dodatkowych,
+sposób płatności oraz korzystanie z e-faktur, a także w mniejszym
+stopniu miesięczne i łączne opłaty.
 
 ## Podpunkt (b)
 
-**
-Czego dowiedziałeś(aś) się o klientach tej firmy, przeprowadzając analizę danych?\newline
-Jakie są ich główne cechy? \newline
-Z jakich usług korzystają najczęściej?
-**
+**Czego dowiedziałeś(aś) się o klientach tej firmy, przeprowadzając
+analizę danych?**\newline Jakie są ich główne cechy? \newline Z jakich
+usług korzystają najczęściej?
 
+Klienci firmy są dość zróżnicowani, ale w danych dominuje profil osoby
+korzystającej z usług telefonicznych i internetowych, często z umową
+month-to-month. Z dodatkowych opcji wielu klientów nie korzysta, zwłaszcza
+z usług bezpieczeństwa i wsparcia. Płeć nie wydaje się mieć większego
+znaczenia, natomiast istotniejsze są cechy związane z długością korzystania
+z usług, rodzajem umowy i zakresem pakietu.
 
 ## Podpunkt (c)
 
-**
-Na podstawie wyników etapu 3 spróbuj odpowiedzieć na poniższe pytania:\newline
-- Jaka jest główna przyczyna odchodzenia klientów?\newline
-Innymi słowy, czym charakteryzują się klienci rezygnujący z usług firmy?\newline
-- Co firma powinna zrobić, aby przeciwdziałać odchodzeniu klientów?
-**
+**Na podstawie wyników etapu 3 spróbuj odpowiedzieć na poniższe
+pytania:**\newline - Jaka jest główna przyczyna odchodzenia
+klientów?\newline Innymi słowy, czym charakteryzują się klienci
+rezygnujący z usług firmy?\newline - Co firma powinna zrobić, aby
+przeciwdziałać odchodzeniu klientów?
+
+Główna przyczyna odchodzenia klientów wydaje się związana z
+niekorzystnym połączeniem krótkiego stażu, umowy month-to-month,
+wyższych miesięcznych opłat i braku dodatkowych usług zabezpieczających.
+W praktyce oznacza to, że odchodzą przede wszystkim klienci słabiej
+związani z firmą, płacący relatywnie dużo i niekorzystający z usług
+zwiększających „przywiązanie” do oferty.
+
+Aby przeciwdziałać churnowi, firma powinna:
+
+-   zachęcać do dłuższych umów
+-   kierować działania retencyjne do nowych klientów oraz osób z
+    wysokimi miesięcznymi opłatami,
+-   monitorować klientów korzystających z umów month-to-month i
+    proponować im bardziej korzystne warunki przed rezygnacją,
+-   oferować pakiety łączące podstawowe usługi z bezpieczeństwem i
+    wsparciem technicznym,
