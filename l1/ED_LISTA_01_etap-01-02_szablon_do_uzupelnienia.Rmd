@@ -1,0 +1,402 @@
+---
+title: "Szablon raportu"
+author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+date: "2026-03-18"
+output:
+  pdf_document:
+  toc: yes
+  fig_caption: yes
+  fig_width: 5
+  fig_height: 4
+  number_sections: yes
+header-includes:
+- \usepackage[OT4]{polski}
+- \usepackage[utf8]{inputenc}
+- \usepackage{graphicx}
+- \usepackage{float}
+subtitle: Eksploracja danych
+fontsize: 12pt
+---
+
+
+
+
+\newcommand{\kb}[1]{\textcolor{blue}{#1}}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
+
+library(xtable) # do tworzenia tabel texowych w pdf
+library(e1071) # pakiet do m.in. wyznaczania skośności i kurtozy
+```
+
+
+# Etap 1: Przygotowanie danych. Podstawowe informacje o danych.
+
+## Podpunkt (a)
+
+Wczytujemy dane z pliku *WA_Fn-UseC_-Telco-Customer-Churn.csv*.
+
+```{r wczytanie danych}
+
+# wczytanie danych z pliku csv
+
+
+# dołączanie zmiennych
+
+```
+
+Typy poszczególnych zmiennych można sprawdzić za pomocą funkcji \texttt{str()}.
+
+
+
+## Podpunkt (b)
+
+**Jaki jest rozmiar danych (liczba przypadków i cech)?**
+
+Liczba cech wynosi ... a liczba rekordów wynosi ... .
+
+Poszczególne cechy to
+
+
+\begin{itemize}
+\item \textbf{gender} (factor; 2 poziomy: Female/Male) - płeć klienta
+\item \textbf{SeniorCitizen} (numeric; zakres: 0-1) - informacja czy klient jest emerytem
+\item ...
+\end{itemize}
+
+
+
+**Jakie są typy poszczególnych cech?**
+
+```{r}
+# Dzielimy zmienne na [jakosciowe] i [ilosciowe]
+
+
+```
+
+Zmienne ilościowe to ... .
+
+Zmienne jakościowe to ... .
+
+\kb{UWAGA: Może warto użyć np. środowiska itemize do czytelniejszego
+           przedstawienia nazw tych zmiennych?}
+
+
+
+
+**Czy wszystkie cechy występujące w danych będą przydatne w analizie? W szczególności: czy w danych występuje cecha(y), które pełnią rolę identyfikatorów klientów? Jeżeli tak, to  wskaż te cechy i usuń je przed dalszą analizą.**
+
+```{r}
+# Sprawdzamy liczbę poziomów dla cechy ...
+
+
+```
+
+Zmienna .... pełni zatem rolę identyfikatora klientów więc ją usuwamy.
+
+```{r}
+# usuwamy cechę ...
+
+```
+
+
+
+
+
+**
+Czy w danych występują brakujące obserwacje? Jeżeli tak, to jak są
+one kodowane?
+**
+
+```{r}
+# liczbe brakujacych obserwacji
+
+
+# połozenie brakujacych obserweacji
+
+
+```
+\kb{UWAGA: Warto tę tabelę dobrze sformatować np. tworząc ją przy pomocy xtable
+    i nazywając jej kolumny np. "Numer wiersza", "Cecha"}
+
+Informacja na temat braków danych (numery wierszy i nazwy cech) są podane
+w tabeli \ref{tab.na.dane}.
+
+```{r Braki danych, echo=FALSE, results='asis'}
+# tab.na <- which(is.na(dane), arr.ind = TRUE)
+# tab.na[,2] <- colnames(dane)[tab.na[,2]]
+#
+# colnames(tab.na) <- c("Wiersz","Cecha")
+# rownames(tab.na) <- NULL
+#
+# xtab.na <- xtable(tab.na,
+#                   caption = "Braki w danych.",
+#                   label = "tab.na.dane")
+# print(xtab.na,
+#       type="latex",
+#       table.placement = "H",
+#       comment=FALSE,
+#       include.rownames=FALSE)
+```
+
+
+```{r}
+# usuwamy wiersze zawierajace NA
+
+
+# ponownie dołączamy zmienne
+
+```
+
+Liczba usuniętych brakujących obserwacji to ... .
+
+**Czy w danych występują nietypowe wartości (np. niestandardowe kodowanie
+                                                 brakujących obserwacji)?**
+
+```{r}
+# Sprawdzamy wartośći przyjmowane prze cechę polecenim unique
+# przykładowo: unique(MultipleLines).
+
+# Jeśli lista tych wartości pokrywa się z liczbą poziomów to jest ok
+# poziomy sprawdzamy poleceniem levels
+# przykładowo: levels(MultipleLines).
+
+# Powtarzamy dla wszystkich cech, by upewnić się czy
+# nie ma niestandardowego kodowania brakujacych obserwacji
+```
+
+Wniosek: brak (?)
+
+
+# Etap 2: Analiza opisowa - wskaźniki sumaryczne i wykresy
+
+## Podpunkt (a)
+
+**
+Wyznacz podstawowe wskaźniki sumaryczne (miary położenia i rozproszenia)
+dla poszczególnych cech/zmiennych.
+**
+
+Wartości miar położenia, rozproszenia oraz koncentracji i asymetrii dla zmiennej
+\textbf{MonthlyCharges} można znaleźć w Tabelach \ref{tab:tab1}, \ref{tab:tab2}
+oraz \ref{tab:tab3}.
+
+```{r, miary_polozenia, echo=FALSE, results='asis'}
+# miary położenia czyli
+# srednia,
+# mediana,
+# kwartyle ...
+
+# df1 <- t(as.matrix(summary(MonthlyCharges)))
+# rownames(df1) <- c("MonthlyCharges")
+# tab1 <- xtable(df1,
+#                caption=paste0("Miary położenia dla zmiennej ","MonthlyCharges"),
+#                label="tab:tab1")
+# print(tab1, comment=FALSE)
+```
+
+
+```{r, miary_rozproszenia, echo=FALSE, results='asis'}
+# miary rozproszenia czyli
+# rozstep miedzykwartylowy,
+# odchylenie standardowe,
+# wariancja...
+
+# df2 <- matrix(c(sd(MonthlyCharges),
+#                 IQR(MonthlyCharges),
+#                 max(MonthlyCharges)-min(MonthlyCharges)),
+#               nrow=1, ncol=3)
+# colnames(df2) <- c("odchylenie standardowe", "rozstęp miedzykwartylowy", "rozstęp")
+# rownames(df2) <- c("MonthlyCharges")
+# tab2 <- xtable(df2,
+#                caption=paste0("Miary rozproszenia dla zmiennej","MonthlyCharges"),
+#                label="tab:tab2")
+# print(tab2, comment=FALSE)
+```
+
+
+```{r, miary_koncentracji_i_asymetrii, echo=FALSE, results='asis'}
+library(e1071)# pakiet z funkcjami skewness oraz kurtosis
+
+# df3 <- data.frame(skew = skewness(MonthlyCharges),
+#                       curt = kurtosis(MonthlyCharges))
+# names(df3) <- c("skośność", "kurtoza")
+# rownames(df3) <- c("MonthlyCharges")
+# tab3 <- xtable(df3,
+#                caption=paste0("Miary koncentracji i asymetrii dla zmiennej ",
+#                               "MonthlyCharges"),
+#                 label="tab:tab3")
+# print(tab3, comment=FALSE)
+```
+
+\kb{
+UWAGA: Opisując wyniki można zwrócić uwagę m.in. na następujące kwestie
+\begin{itemize}
+  \item Jak ma się średnia do mediany tzn. co jest większe? Co to może sugerować?
+  \item Czy medianie bliżej do pierwszego czy do trzeciego kwartyla?
+  \item Czy pierwszemu kwartylowi bliżej do minimum, czy może trzeciemu do maksimum?
+  \item Skąd może wynikać duża/mała rozpiętośc przyjmowanych wartości?
+  \item Jak mozna zinterpretować otrzymaną wartość odchylenia standardowego?
+  \item Co mówią nam otrzymane współczynniki skośności i kurtozy na temat rozkładu?
+\end{itemize}
+      Oczywiście to nie wszystkie istotne pytania, na które warto odpowiedzieć. Mozna też np. postawić pewne przypuszczenia i spróbować je zweryfikować za pomocą metod graficznych.
+}
+
+## Podpunkt (b)
+
+**
+Zilustruj rozkład poszczególnych cech/zmiennych za pomocą odpowiednich wykresów
+(wykresy słupkowe, histogramy, wykresy pudełkowe itp.).
+**
+
+Zaczynamy od wykresów dla zmiennych ilościowych.
+```{r, zmienne_ilosciowe, echo=FALSE, fig.cap=c("Histogram dla zmiennej MonthlyCharges","Wykres pudełkowy dla zmiennej MonthlyCharges"), fig.height=3}
+
+# histogram
+
+
+# wykres pudełkowy (boxplot)
+
+```
+
+A teraz wykresy dla dla zmiennych jakościowych.
+```{r, zmienne_jakosciowe, echo=FALSE, fig.cap=c("Wykres słupkowy dla zmiennej Contract","wykres kołowy dla zmiennej Contract"), fig.height=3.5}
+
+# wykres słupkowy (barplot)
+
+
+# wykres kołowy (pie)
+
+```
+
+
+    Dla zmiennych jakościowych można również wykorzystać tabele liczności
+    jak np. Tabela \ref{tab.licz.contract}.
+
+```{r, zmienne_jakosciowe_tabele_licznosci, results='asis'}
+# tabela liczności za pomocą xtable w pdf
+
+# tab.contract <- table(Contract)
+# xtab.contract <- xtable(tab.contract,
+#                         caption = "Tabela liczności dla cechy Contract.",
+#                         label = "tab.licz.contract")
+# print(xtab.contract, table.placement = "H", comment=FALSE)
+```
+
+## Podpunkt (c)
+
+**
+Wykorzystując wykresy rozrzutu dla par zmiennych ciągłych, przeanalizuj czy występują istotne (np. liniowe) zależności pomiędzy zmiennymi.
+**
+
+```{r}
+# współczynnik korelacji
+
+```
+
+\kb{UWAGA: Te wyniki powinny być odpowiednio zaprezentowane
+      w dobrze sformatowanej tabeli (zobacz poprzednie chunki).}
+
+```{r, wykresy_rozrzutu, results='asis'}
+# wykres rozrzutu dla pary zmiennych ilościowych ciągłych
+
+```
+
+## Podpunkt (d)
+
+**Zinterpretuj otrzymane rezultaty, w szczególności odpowiadając na pytania:**
+
+**
+(1) Jaki jest zakres możliwych wartości dla poszczególnych zmiennych?
+**
+
+
+
+
+
+
+**
+(2) W przypadku zmiennych ilościowych:\newline
+    i. Czy wszystkie zmienne mają rozkład symetryczny?\newline
+    ii. Które cechy charakteryzują się największą zmiennością?
+**
+
+
+
+
+
+**
+(3) W przypadku zmiennych jakościowych:\newline
+      i. Co można powiedzieć o częstości przyjmowania poszczególnych kategorii?
+**
+
+
+
+
+
+
+
+
+
+
+# Etap 3: Analiza opisowa z podziałem na grupy
+
+## Podpunkt (a)
+
+**
+Przeprowadź analizę opisową, podobnie jak w etapie 2 (wyznaczając wskaźniki
+opisowe i podstawowe wykresy), tym razem jednak z podziałem na dwie grupy:\newline
+grupa 1: Churn==’Yes’ – grupa klientów, którzy odeszli (zrezygnowali), \newline
+grupa 2: Churn==’No’ – grupa lojalnych klientów (korzystają dalej z usług firmy).
+**
+
+
+
+## Podpunkt (b)
+
+**
+Analizując wyniki z podpunktu a), odpowiedz na pytanie:\newline
+które ze zmiennych wykazują największe zróżnicowanie wartości/rozkładu w grupach,\newline
+tzn. pozwalają na najlepsze rozróżnienie klientów z dwóch grup?
+**
+
+
+
+
+
+
+
+
+
+
+
+# Etap 4: Podsumowanie - wnioski z przeprowadzonej analizy
+
+
+## Podpunkt (a)
+
+**
+Podsumuj krótko wyniki uzyskane w etapach 1-3.\newline
+Jakie wnioski można wyciągnąć na podstawie przeprowadzonych analiz?
+**
+
+## Podpunkt (b)
+
+**
+Czego dowiedziałeś(aś) się o klientach tej firmy, przeprowadzając analizę danych?\newline
+Jakie są ich główne cechy? \newline
+Z jakich usług korzystają najczęściej?
+**
+
+
+## Podpunkt (c)
+
+**
+Na podstawie wyników etapu 3 spróbuj odpowiedzieć na poniższe pytania:\newline
+- Jaka jest główna przyczyna odchodzenia klientów?\newline
+Innymi słowy, czym charakteryzują się klienci rezygnujący z usług firmy?\newline
+- Co firma powinna zrobić, aby przeciwdziałać odchodzeniu klientów?
+**
