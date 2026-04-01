@@ -72,13 +72,6 @@ Plik surowy zawiera `r nrow(dane_raw)` przypadków i `r ncol(dane_raw)`
 cech, natomiast w zbiorze używanym do dalszej analizy pozostaje
 `r nrow(dane)` przypadków i `r ncol(dane)` cech.
 
-Poszczególne cechy dzielimy na:
-
-\begin{itemize}
-\item zmienne ilościowe: `r paste(vars_ilosciowe, collapse = ", ")`
-\item zmienne jakościowe: `r paste(vars_jakosciowe, collapse = ", ")`
-\end{itemize}
-
 Zmienna \textbf{SeniorCitizen} jest binarnym wskaźnikiem, więc została
 zamieniona na typ logiczny (\texttt{FALSE}/\texttt{TRUE}).
 
