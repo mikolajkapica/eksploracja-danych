@@ -79,26 +79,26 @@ Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych
 
 \begin{itemize}
 \item \textbf{customerID} (character) - identyfikator klienta; unikalny kod dla każdego klienta
-\item \textbf{gender} (factor; poziomy: Female, Male) - płeć klienta
-\item \textbf{SeniorCitizen} (logiczny; poziomy: FALSE, TRUE) - informacja, czy klient jest emerytem (oryginalnie kodowane jako 0/1, następnie przekonwertowane na typ logiczny)
-\item \textbf{Partner} (factor; poziomy: No, Yes) - informacja, czy klient ma partnera/partnerkę
-\item \textbf{Dependents} (factor; poziomy: No, Yes) - informacja, czy klient ma osoby na utrzymaniu (dzieci, osoby zależne)
+\item \textbf{gender} (factor; poziomy: `r paste(levels(dane$gender), collapse = ", ")`) - płeć klienta
+\item \textbf{SeniorCitizen} (logiczny; poziomy: `r paste(levels(as.factor(dane$SeniorCitizen)), collapse = ", ")`) - informacja, czy klient jest emerytem (oryginalnie kodowane jako 0/1, następnie przekonwertowane na typ logiczny)
+\item \textbf{Partner} (factor; poziomy: `r paste(levels(dane$Partner), collapse = ", ")`) - informacja, czy klient ma partnera/partnerkę
+\item \textbf{Dependents} (factor; poziomy: `r paste(levels(dane$Dependents), collapse = ", ")`) - informacja, czy klient ma osoby na utrzymaniu (dzieci, osoby zależne)
 \item \textbf{tenure} (numeryczny; zakres: `r min(dane$tenure)`-`r max(dane$tenure)`) - liczba miesięcy, przez które klient pozostaje z firmą
-\item \textbf{PhoneService} (factor; poziomy: No, Yes) - informacja, czy klient ma usługę telefoniczną
-\item \textbf{MultipleLines} (factor; poziomy: No, No phone service, Yes) - informacja, czy klient ma wiele linii telefonicznych
-\item \textbf{InternetService} (factor; poziomy: DSL, Fiber optic, No) - dostawca usług internetowych klienta
-\item \textbf{OnlineSecurity} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma zabezpieczenia online
-\item \textbf{OnlineBackup} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma kopię zapasową online
-\item \textbf{DeviceProtection} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma ochronę urządzenia
-\item \textbf{TechSupport} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma wsparcie techniczne
-\item \textbf{StreamingTV} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma streaming TV
-\item \textbf{StreamingMovies} (factor; poziomy: No, No internet service, Yes) - informacja, czy klient ma streaming filmów
-\item \textbf{Contract} (factor; poziomy: Month-to-month, One year, Two year) - rodzaj umowy klienta
-\item \textbf{PaperlessBilling} (factor; poziomy: No, Yes) - informacja, czy klient korzysta z e-faktur
-\item \textbf{PaymentMethod} (factor; poziomy: Bank transfer (automatic), Credit card (automatic), Electronic check, Mailed check) - metoda płatności klienta
+\item \textbf{PhoneService} (factor; poziomy: `r paste(levels(dane$PhoneService), collapse = ", ")`) - informacja, czy klient ma usługę telefoniczną
+\item \textbf{MultipleLines} (factor; poziomy: `r paste(levels(dane$MultipleLines), collapse = ", ")`) - informacja, czy klient ma wiele linii telefonicznych
+\item \textbf{InternetService} (factor; poziomy: `r paste(levels(dane$InternetService), collapse = ", ")`) - dostawca usług internetowych klienta
+\item \textbf{OnlineSecurity} (factor; poziomy: `r paste(levels(dane$OnlineSecurity), collapse = ", ")`) - informacja, czy klient ma zabezpieczenia online
+\item \textbf{OnlineBackup} (factor; poziomy: `r paste(levels(dane$OnlineBackup), collapse = ", ")`) - informacja, czy klient ma kopię zapasową online
+\item \textbf{DeviceProtection} (factor; poziomy: `r paste(levels(dane$DeviceProtection), collapse = ", ")`) - informacja, czy klient ma ochronę urządzenia
+\item \textbf{TechSupport} (factor; poziomy: `r paste(levels(dane$TechSupport), collapse = ", ")`) - informacja, czy klient ma wsparcie techniczne
+\item \textbf{StreamingTV} (factor; poziomy: `r paste(levels(dane$StreamingTV), collapse = ", ")`) - informacja, czy klient ma streaming TV
+\item \textbf{StreamingMovies} (factor; poziomy: `r paste(levels(dane$StreamingMovies), collapse = ", ")`) - informacja, czy klient ma streaming filmów
+\item \textbf{Contract} (factor; poziomy: `r paste(levels(dane$Contract), collapse = ", ")`) - rodzaj umowy klienta
+\item \textbf{PaperlessBilling} (factor; poziomy: `r paste(levels(dane$PaperlessBilling), collapse = ", ")`) - informacja, czy klient korzysta z e-faktur
+\item \textbf{PaymentMethod} (factor; poziomy: `r paste(levels(dane$PaymentMethod), collapse = ", ")`) - metoda płatności klienta
 \item \textbf{MonthlyCharges} (numeryczny; zakres: `r min(dane$MonthlyCharges)`-`r max(dane$MonthlyCharges)`) - miesięczna opłata pobierana od klienta
 \item \textbf{TotalCharges} (numeryczny; zakres: `r min(dane$TotalCharges)`-`r max(dane$TotalCharges)`) - całkowita kwota pobrana od klienta
-\item \textbf{Churn} (factor; poziomy: No, Yes) - informacja, czy klient zrezygnował z usług (tak/nie)
+\item \textbf{Churn} (factor; poziomy: `r paste(levels(dane$Churn), collapse = ", ")`) - informacja, czy klient zrezygnował z usług (tak/nie)
 \end{itemize}
 
 **Jakie są typy poszczególnych cech?**
@@ -131,12 +131,8 @@ liczba_unikalnych_id
 
 Zmienna \texttt{customerID} ma `r liczba_unikalnych_id` unikalnych
 wartości, więc pełni rolę identyfikatora klientów i nie wnosi informacji
-do analizy.
-
-```{r}
-## customerID został usunięty przy tworzeniu danych analitycznych
-
-```
+do analizy. Ponieważ nie jest potrzebna do dalszej analizy, została
+usunięta ze zbioru danych na etapie wczytywania danych.
 
 **Czy w danych występują brakujące obserwacje? Jeżeli tak, to jak są one
 kodowane?**
@@ -144,15 +140,16 @@ kodowane?**
 ```{r}
 liczba_brakow <- sum(is.na(dane_raw))
 liczba_brakow
+```
 
+Liczba usuniętych brakujących obserwacji to `r nrow(dane_raw) - nrow(dane)`.
+
+```{r, echo=FALSE}
 tab_na <- as.data.frame(which(is.na(dane_raw), arr.ind = TRUE))
 colnames(tab_na) <- c("Numer wiersza", "Numer cechy")
 tab_na$Cecha <- colnames(dane_raw)[tab_na[["Numer cechy"]]]
 tab_na <- tab_na[, c("Numer wiersza", "Cecha")]
 ```
-
-Informacja na temat braków danych (numery wierszy i nazwy cech) są
-podane w tabeli \ref{tab:na.dane}.
 
 ```{r Braki danych, echo=FALSE, results='asis'}
 knitr::kable(tab_na,
@@ -161,30 +158,17 @@ knitr::kable(tab_na,
              label = "na.dane")
 ```
 
-```{r}
-dane <- dane[complete.cases(dane), ]
-dane[] <- lapply(dane, function(x) if (is.character(x)) factor(x) else x)
-dane$SeniorCitizen <- as.logical(dane$SeniorCitizen)
-```
-
-Liczba usuniętych brakujących obserwacji to
-`r nrow(dane_raw) - nrow(dane)`.
+Informacja na temat braków danych (numery wierszy i nazwy cech) są
+podane w tabeli \ref{tab:na.dane}.
 
 **Czy w danych występują nietypowe wartości (np. niestandardowe
 kodowanie brakujących obserwacji)?**
 
-```{r}
-odstepstwa <- lapply(names(dane)[sapply(dane, is.factor)], function(v) {
-  setdiff(unique(as.character(dane[[v]])), levels(dane[[v]]))
-})
-names(odstepstwa) <- names(dane)[sapply(dane, is.factor)]
-odstepstwa[sapply(odstepstwa, length) > 0]
-```
-
-Wniosek: brak niestandardowego kodowania brakujących obserwacji; jedyne
-braki w surowym pliku były zapisane jako puste pola w kolumnie
-\texttt{TotalCharges}, które po wczytaniu zostały zamienione na
-\texttt{NA}.
+Przegląd unikalnych wartości zmiennych z szczegółowego wykazu wszystkich
+możliwych wartości cech jakościowych oraz zakresów zmiennych liczbowych nie
+wskazuje na niestandardowe kodowanie brakujących obserwacji. Jedyny przypadek
+braków dotyczył kolumny \texttt{TotalCharges}, gdzie brakujące wartości były
+zapisane jako puste pola i wczytane jako \texttt{NA}.
 
 # Etap 2: Analiza opisowa - wskaźniki sumaryczne i wykresy
 
