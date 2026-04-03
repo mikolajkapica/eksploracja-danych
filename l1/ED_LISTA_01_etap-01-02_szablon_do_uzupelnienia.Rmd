@@ -54,7 +54,7 @@ print_xtable <- function(x, caption = NULL, label = NULL, size = NULL) {
 
 Wczytujemy dane z pliku *WA_Fn-UseC_-Telco-Customer-Churn.csv*.
 
-```{r wczytanie danych}
+```{r, wczytanie danych}
 dane_raw <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv",
                      stringsAsFactors = FALSE,
                      na.strings = c("", " "))
@@ -74,7 +74,7 @@ vars_jakosciowe <- names(dane)[
 ]
 vars_ciagle <- c("tenure", "MonthlyCharges", "TotalCharges")
 
-str(dane)
+str(dane, width = 75, strict.width = "cut")
 ```
 
 Typy poszczególnych zmiennych można sprawdzić za pomocą funkcji
@@ -125,7 +125,7 @@ tab_typy <- data.frame(
   Typ = ifelse(names(dane) %in% vars_ilosciowe, "ilościowa", "jakościowa"),
   check.names = FALSE
 )
-print_xtable(tab_typy)
+print_xtable(tab_typy, caption = "Typy poszczególnych zmiennych")
 ```
 
 Zmienne ilościowe to `r paste(vars_ilosciowe, collapse = ", ")`.
@@ -289,12 +289,6 @@ print_xtable(
   label = "tab:tab3"
 )
 ```
-
-\textcolor{blue}{
-UWAGA: Opisując wyniki można zwrócić uwagę m.in. na następujące kwestie
-Oczywiście to nie wszystkie istotne pytania, na które warto odpowiedzieć. Mozna też np. postawić pewne przypuszczenia i spróbować je zweryfikować za pomocą metod graficznych.
-}
-
 
 \begin{itemize}
   \item Jak ma się średnia do mediany tzn. co jest większe? Co to może sugerować?
@@ -468,13 +462,50 @@ text(wykres, wartosci, labels = wartosci, pos = 3)
 ```
 Rysunek \ref{fig:etap_2_b_techsupport} prezentuje zainteresowanie usługą wsparcia technicznego (*TechSupport*). Z analizy wynika, że bardzo duża część klientów (około 3500 osób) nie ma wykupionej tej usługi. Jak wskazują dalsze etapy badań, brak wsparcia technicznego może być jednym z czynników zwiększających ryzyko odejścia klienta do konkurencji (tzw. *churn*), dlatego ta dysproporcja jest z punktu widzenia biznesowego sygnałem ostrzegawczym.
 
+```{r, etap_2_b_senior, echo=FALSE, fig.cap="Po lewej: status seniora. Po prawej: churn według stażu dla seniorów i nieseniorów.", out.width="100%"}
+  tenure_bucket <- cut(
+    dane$tenure,
+    breaks = c(-0.1, 6, 12, 18, 24, 36, 48, 60, 72),
+    labels = c("0-6", "7-12", "13-18", "19-24", "25-36", "37-48", "49-60", "61-72"),
+    right = TRUE
+  )
 
-```{r etap_2_b_senior, echo=FALSE, fig.cap="Podział klientów ze względu na status seniora.", out.width="100%"}
-wartosci <- table(dane$SeniorCitizen)
-wykres <- barplot(wartosci, main = "Czy klient jest seniorem?", col = "lightblue", ylim = c(0, 6500), names.arg = c("Nie (0)", "Tak (1)"))
-text(wykres, wartosci, labels = wartosci, pos = 3)
+  par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+  
+  wartosci <- table(dane$SeniorCitizen)
+  wykres <- barplot(wartosci, main = "Czy klient jest seniorem?", col = "lightblue", ylim = c(0, 6500), names.arg = c("Nie", "Tak"))
+  text(wykres, wartosci, labels = wartosci, pos = 3)
+
+
+  tab <- table(tenure_bucket, dane$SeniorCitizen, dane$Churn)
+  churn_rate <- prop.table(tab, margin = c(1, 2))[ , , "Yes"] * 100
+
+  matplot(
+    x = 1:nrow(churn_rate),
+    y = churn_rate,
+    type = "b",
+    pch = c(16, 17),
+    lty = 1,
+    lwd = 2,
+    col = c("#1F78B4", "#E31A1C"),
+    xaxt = "n",
+    xlab = "Przedział stażu [miesiące]",
+    ylab = "Churn [%]",
+    main = "Churn w kolejnych\nprzedziałach stażu",
+    cex.main = 0.9
+  )
+
+  axis(1, at = 1:nrow(churn_rate), labels = rownames(churn_rate))
+  legend(
+    "topright",
+    legend = c("Nieseniorzy", "Seniorzy"),
+    col = c("#1F78B4", "#E31A1C"),
+    pch = c(16, 17),
+    lty = 1,
+    bty = "n"
+  )
 ```
-Rysunek \ref{fig:etap_2_b_senior} widać wyraźną dysproporcję w wieku klientów. Osoby starsze (seniorzy) stanowią zdecydowaną mniejszość wśród użytkowników usług firmy.
+Rysunek \ref{fig:etap_2_b_senior} pokazuje, że seniorzy stanowią mniejszość klientów, ale mają wyższy churn niż nieseniorzy w każdym przedziale stażu. W obu grupach churn maleje wraz ze stażem.
 
 ```{r etap_2_b_gender, echo=FALSE, fig.cap="Podział klientów ze względu na płeć.", out.width="100%"}
 wartosci <- table(dane$gender)
