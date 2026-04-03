@@ -1,24 +1,28 @@
 ---
-title: "Lista 1"
+title: "Sprawozdanie 1"
+subtitle: "Eksploracja danych"
 author: "Jan Bryłka (287379), Mikołaj Kapica (272729)"
-date: "`r format(Sys.Date(), '%d %b %Y')`"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
-  toc: yes
-  fig_caption: yes
-  fig_width: 5
-  fig_height: 4
-  number_sections: yes
+    toc: true
+    fig_caption: yes
+    fig_width: 5
+    fig_height: 4
+    number_sections: true
+    dev: cairo_pdf
+  html_document:
+    theme: united
+    toc: true
+    toc_float: true
+    number_sections: true
 header-includes:
-- \usepackage[OT4]{polski}
-- \usepackage[utf8]{inputenc}
-- \usepackage{graphicx}
-- \usepackage{float}
-subtitle: Eksploracja danych
+  - \usepackage[OT4]{polski}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage{graphicx}
+  - \usepackage{float}
 fontsize: 12pt
 ---
-
-
 
 
 \newcommand{\kb}[1]{\textcolor{blue}{#1}}
@@ -44,7 +48,7 @@ print_xtable <- function(x, caption = NULL, label = NULL, size = NULL) {
 ```
 
 
-# Etap 1: Przygotowanie danych. Podstawowe informacje o danych.
+# Przygotowanie danych. Podstawowe informacje o danych.
 
 ## Podpunkt (a)
 
@@ -126,7 +130,7 @@ print_xtable(tab_typy)
 
 Zmienne ilościowe to `r paste(vars_ilosciowe, collapse = ", ")`.
 
-Zmienne jakościowe to `r paste(vars_jakosciowe, collapse = ", ")`.
+Zmienne jakościowe to `r paste(vars_jakosciowe, collapse = ", ")`, zmienna customerID została przez nas usunięta i nie traktujemy jej jako zmiennej jakościowej.
 
 **Czy wszystkie cechy występujące w danych będą przydatne w analizie? W
 szczególności: czy w danych występuje cecha(y), które pełnią rolę
@@ -188,7 +192,7 @@ wskazuje na niestandardowe kodowanie brakujących obserwacji. Jedyny przypadek
 braków dotyczył kolumny `TotalCharges`, gdzie brakujące wartości były
 zapisane jako puste pola i wczytane jako `NA`.
 
-# Etap 2: Analiza opisowa - wskaźniki sumaryczne i wykresy
+# Analiza opisowa - wskaźniki sumaryczne i wykresy
 
 ## Podpunkt (a)
 
@@ -360,7 +364,7 @@ wykresów (wykresy słupkowe, histogramy, wykresy pudełkowe itp.).**
 
 Zaczynamy od wykresów dla zmiennych ilościowych.
 
-```{r, zmienne_ilosciowe, echo=FALSE, fig.cap=c("Histogram dla zmiennej MonthlyCharges","Wykres pudełkowy dla zmiennej MonthlyCharges"), fig.height=3}
+```{r zmienne_ilosciowe, echo=FALSE, fig.cap="Histogram i wykres pudełkowy dla zmiennej MonthlyCharges", fig.height=3}
 par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 hist(dane$MonthlyCharges,
      breaks = 30,
@@ -374,13 +378,28 @@ boxplot(dane$MonthlyCharges,
         main = "MonthlyCharges",
         xlab = "Opłata miesięczna")
 ```
+Powyższe zestawienie (Rysunek \ref{fig:zmienne_ilosciowe}) prezentuje rozkład miesięcznych opłat ponoszonych przez klientów. Z histogramu (po lewej) wynika, że najliczniejszą grupę stanowią klienci płacący najniższe rachunki (około 20 dolarów), ale widoczne jest również szerokie skupisko klientów z drogimi pakietami. Z kolei wykres pudełkowy (po prawej) uzupełnia te obserwacje, ponieważ ukazuje medianę na poziomie około 70 dolarów, bardzo szeroki box świadczy o dużym zróżnicowaniu opłat oraz o braku występowania wartości wyjątkowo odstających.
 
-A teraz wykresy dla dla zmiennych jakościowych. Ze względu na dużą liczbę
-cech jakościowych pokazujemy reprezentatywny przykład dla zmiennej
-`Contract`, natomiast dla pozostałych zmiennych podobną rolę
-pełnią tabele liczności i udziały kategorii.
 
-```{r, zmienne_jakosciowe, echo=FALSE, fig.cap="Wykres słupkowy i kołowy dla zmiennej Contract", fig.height=5}
+```{r etap_2_b_tenure, echo=FALSE, fig.cap="Rozkład stażu klientów w miesiącach.", out.width="100%"}
+hist(dane$tenure, main = "Rozkład stażu klientów (tenure)",
+     xlab = "Liczba miesięcy", ylab = "Liczebność",
+     col = "lightgreen", breaks = 20)
+```
+Histogram (Rysunek \ref{fig:etap_2_b_tenure}) prezentuje rozkład czasu (stażu), przez jaki klienci korzystają z usług firmy. Możemy zaobserwować, że występuje bardzo duża grupa nowych klientów (staż bliski 0 miesięcy), a pozostałe grupy (stali klienci) mają liczebność na podobnym poziomie.
+
+```{r etap_2_b_total_charges, echo=FALSE, fig.cap="Rozkład całkowitych opłat klientów.", out.width="100%"}
+hist(dane$TotalCharges, main = "Rozkład całkowitych opłat (TotalCharges)",
+     xlab = "Kwota całkowita (USD)", ylab = "Liczebność",
+     col = "plum", breaks = 30, border = "white")
+```
+Kolejny histogram (Rysunek \ref{fig:etap_2_b_total_charges}) ilustruje rozkład całkowitych kwot, jakie klienci zapłacili firmie od początku trwania umowy. Widzimy tutaj bardzo silną asymetrię prawostronną (rozkład prawoskośny). Zdecydowanie najliczniejszą grupę stanowią osoby, których łączne rachunki są bardzo niskie - jest to naturalnie powiązane z liczną grupą nowych klientów, którzy mają krótki staż i nie zdążyli jeszcze wygenerować dużego przychodu dla firmy.
+
+\newpage
+
+A teraz wykresy dla zmiennych jakościowych.
+
+```{r zmienne_jakosciowe, echo=FALSE, fig.cap="Wykres słupkowy i kołowy dla zmiennej Contract", fig.height=5}
 tab_contract <- table(dane$Contract)
 par(mfrow = c(1, 2), mar = c(8, 4, 2, 1), oma = c(0, 0, 3, 0))
 barplot(tab_contract,
@@ -397,17 +416,18 @@ pie(tab_contract,
 )
 angles <- 2 * pi * (cumsum(tab_contract) - tab_contract / 2) / sum(tab_contract)
 text(1.4 * cos(angles), 1.4 * sin(angles), labels = lab_contract, xpd = TRUE)
-mtext("Contract", outer = TRUE, line = 1, cex = 1.3, font = 2)
+mtext("Rozkład Contract", outer = TRUE, line = 1, cex = 1.3, font = 2)
 ```
+Jak widać na powyższym zestawieniu (Rysunek \ref{fig:zmienne_jakosciowe}), zdecydowana większość klientów firmy (ponad 55%) korzysta z umów odnawianych z miesiąca na miesiąc (*Month-to-month*). Umowy długoterminowe (roczne i dwuletnie) stanowią mniejszość i cieszą się niemal identycznym zainteresowaniem.
 
-Dla zmiennych jakościowych można również wykorzystać tabele liczności
+Dla zmiennych jakościowych można również wykorzystać tabele liczności,
 jak np. tabela \ref{tab:licz.contract}.
 
-```{r, zmienne_jakosciowe_tabele_licznosci}
+```{r zmienne_jakosciowe_tabele_licznosci, echo=FALSE}
 tab_contract <- table(dane$Contract)
 ```
 
-```{r, echo=FALSE, results='asis'}
+```{r tab_licz_contract, echo=FALSE, results='asis'}
 tab_contract_df <- data.frame(
   Contract = names(tab_contract),
   Liczność = as.integer(tab_contract),
@@ -420,6 +440,61 @@ print_xtable(
   label = "tab:licz.contract"
 )
 ```
+Tabela \ref{tab:licz.contract} precyzyjnie potwierdza wnioski wyciągnięte z wykresów, przedstawiając dokładne wartości liczbowe oraz procentowe dla każdego z typów umowy.
+
+
+```{r etap_2_b_internet, echo=FALSE, fig.cap="Podział klientów ze względu na rodzaj usługi internetowej.", out.width="100%"}
+wartosci <- table(dane$InternetService)
+wykres <- barplot(wartosci, main = "Podział klientów ze względu na dostarczany internet", col = "lightblue", ylim = c(0, 3500))
+text(wykres, wartosci, labels = wartosci, pos = 3)
+```
+Z kolejnego wykresu słupkowego (Rysunek \ref{fig:etap_2_b_internet}) wynika, że najpopularniejszą usługą jest szybki internet światłowodowy (*Fiber optic*), który nieznacznie wyprzedza tradycyjne łącza DSL. Zauważalna grupa ponad 1500 osób w ogóle nie korzysta z usług internetowych u tego dostawcy.
+
+
+```{r etap_2_b_dependents, echo=FALSE, fig.cap="Podział klientów ze względu na posiadanie osób na utrzymaniu.", out.width="100%"}
+wartosci <- table(dane$Dependents)
+wykres <- barplot(wartosci, main = "Czy klient ma osoby na utrzymaniu?",
+                  col = "palegreen", ylim = c(0, 5500))
+text(wykres, wartosci, labels = wartosci, pos = 3)
+```
+Wykres słupkowy (Rysunek \ref{fig:etap_2_b_dependents}) przedstawia strukturę demograficzną klientów pod kątem posiadania osób na utrzymaniu. Ponad 4900 klientów to osoby bez nikogo na utrzymaniu, co wskazuje, że profil typowego klienta tej firmy to prawdopodobnie singiel lub osoba niezależna finansowo, a pakiety rodzinne mogą być mniej popularne.
+
+
+```{r etap_2_b_techsupport, echo=FALSE, fig.cap="Podział klientów ze względu na korzystanie ze wsparcia technicznego.", out.width="100%"}
+wartosci <- table(dane$TechSupport)
+wykres <- barplot(wartosci, main = "Korzystanie ze wsparcia technicznego",
+                  col = "khaki", ylim = c(0, 4000))
+text(wykres, wartosci, labels = wartosci, pos = 3)
+```
+Rysunek \ref{fig:etap_2_b_techsupport} prezentuje zainteresowanie usługą wsparcia technicznego (*TechSupport*). Z analizy wynika, że bardzo duża część klientów (około 3500 osób) nie ma wykupionej tej usługi. Jak wskazują dalsze etapy badań, brak wsparcia technicznego może być jednym z czynników zwiększających ryzyko odejścia klienta do konkurencji (tzw. *churn*), dlatego ta dysproporcja jest z punktu widzenia biznesowego sygnałem ostrzegawczym.
+
+
+```{r etap_2_b_senior, echo=FALSE, fig.cap="Podział klientów ze względu na status seniora.", out.width="100%"}
+wartosci <- table(dane$SeniorCitizen)
+wykres <- barplot(wartosci, main = "Czy klient jest seniorem?", col = "lightblue", ylim = c(0, 6500), names.arg = c("Nie (0)", "Tak (1)"))
+text(wykres, wartosci, labels = wartosci, pos = 3)
+```
+Rysunek \ref{fig:etap_2_b_senior} widać wyraźną dysproporcję w wieku klientów. Osoby starsze (seniorzy) stanowią zdecydowaną mniejszość wśród użytkowników usług firmy.
+
+```{r etap_2_b_gender, echo=FALSE, fig.cap="Podział klientów ze względu na płeć.", out.width="100%"}
+wartosci <- table(dane$gender)
+wykres <- barplot(wartosci, main = "Podział klientów ze względu na płeć", col = c("pink", "lightblue"), ylim = c(0, 4500))
+text(wykres, wartosci, labels = wartosci, pos = 3)
+```
+Jak widać na powyższym wykresie słupkowym (Rysunek \ref{fig:etap_2_b_gender}), różnica między grupami jest bardzo niewielka. Baza klientów dzieli się niemal równo na pół, z minimalną przewagą mężczyzn.
+
+
+```{r etap_2_b_payment, echo=FALSE, fig.cap="Podział klientów ze względu na metodę płatności.", out.width="100%"}
+par(oma = c(0, 0, 2, 0)) 
+par(mar = c(5, 11, 2, 2)) 
+wartosci <- sort(table(dane$PaymentMethod))
+wykres <- barplot(wartosci, col = "lightcoral", horiz = TRUE, las = 1, xlim = c(0, 3000), cex.names = 0.85)
+text(wartosci, wykres, labels = wartosci, pos = 4)
+mtext("Metody płatności wybierane przez klientów", outer = TRUE, side = 3, cex = 1.2, font = 2)
+```
+Zestawienie zaprezentowane na wykresie (Rysunek \ref{fig:etap_2_b_payment}) ukazuje preferencje klientów w zakresie formy opłacania rachunków. Najczęściej wybieraną metodą jest czek elektroniczny (*Electronic check*), z którego korzysta ponad 2300 osób. Pozostałe trzy formy płatności (przelew bankowy, karta kredytowa oraz tradycyjny czek pocztowy) cieszą się zbliżonym, zauważalnie mniejszym zainteresowaniem.
+
+\newpage
 
 ## Podpunkt (c)
 
@@ -445,12 +520,14 @@ print_xtable(
 )
 ```
 
-```{r, wykresy_rozrzutu, results='asis'}
+```{r wykresy_rozrzutu, echo=FALSE, fig.cap="Macierz wykresów rozrzutu dla zmiennych ciągłych.", out.width="100%"}
 pairs(dane[, vars_ciagle],
       pch = ".",
       col = rgb(0.2, 0.45, 0.75, 0.25),
       main = "Zależności między zmiennymi ciągłymi")
 ```
+
+
 
 Najsilniejsza zależność liniowa występuje między `tenure` i
 `TotalCharges` (korelacja `r round(cor(dane$tenure, dane$TotalCharges), 3)`),
@@ -466,101 +543,61 @@ bezpośrednio wysokości miesięcznego abonamentu.
 
 ## Podpunkt (d)
 
-**Zinterpretuj otrzymane rezultaty, w szczególności odpowiadając na
-pytania:**
+**Zinterpretuj otrzymane rezultaty, w szczególności odpowiadając na pytania:**
 
-**(1) Jaki jest zakres możliwych wartości dla poszczególnych
-zmiennych?**
+**(1) Jaki jest zakres możliwych wartości dla poszczególnych zmiennych?**
 
-Zakresy najważniejszych zmiennych są następujące: `SeniorCitizen`
-przyjmuje wartości `FALSE` lub `TRUE` (oryginalnie 0/1),
-`tenure` mieści się w przedziale od 1 do 72 miesięcy,
-`MonthlyCharges` od 18.25 do 118.75, a
-`TotalCharges` od 18.80 do 8684.80. Zmienne jakościowe przyjmują
-natomiast skończony zbiór kategorii opisujących płeć, sytuację rodzinną,
-rodzaj usługi internetowej, pakiet umowy oraz sposób płatności.
+```{r et2_obliczenia_zakresy, include=FALSE}
+zakres_tenure <- range(dane$tenure, na.rm = TRUE)
+zakres_monthly <- range(dane$MonthlyCharges, na.rm = TRUE)
+zakres_total <- range(dane$TotalCharges, na.rm = TRUE)
+```
 
-**(2) W przypadku zmiennych ilościowych:**\newline i. Czy wszystkie
-zmienne mają rozkład symetryczny?\newline ii. Które cechy charakteryzują
-się największą zmiennością?
+Zakresy najważniejszych zmiennych ilościowych kształtują się następująco:
+zmienna `tenure` (staż) mieści się w przedziale od `r zakres_tenure[1]` do `r zakres_tenure[2]` miesięcy. Zmienna `MonthlyCharges` (opłaty miesięczne) przyjmuje wartości od `r zakres_monthly[1]` do `r zakres_monthly[2]` USD, natomiast `TotalCharges` (całkowite opłaty) waha się w szerokim przedziale od `r zakres_total[1]` do `r zakres_total[2]` USD. Zmienna `SeniorCitizen` przyjmuje wartości logiczne `FALSE` lub `TRUE` (oryginalnie 0/1). Pozostałe zmienne jakościowe przyjmują skończony zbiór kategorii tekstowych opisujących m.in. płeć, sytuację rodzinną, rodzaj usługi internetowej czy sposób płatności.
 
-<!-- ```{r asymetria_i_zmiennosc, echo=TRUE}                                    -->
-<!-- skosnosci <- sapply(vars_ciagle, function(v) e1071::skewness(dane[[v]]))   -->
-<!--                                                                            -->
-<!-- srednie_vs_mediany <- do.call(rbind, lapply(vars_ciagle, function(v) {     -->
-<!--   data.frame(                                                              -->
-<!--     Zmienna = v,                                                           -->
-<!--     Srednia = round(mean(dane[[v]]), 2),                                   -->
-<!--     Mediana = round(median(dane[[v]]), 2),                                 -->
-<!--     Roznica_sr_minus_med = round(mean(dane[[v]]) - median(dane[[v]]), 2)   -->
-<!--   )                                                                        -->
-<!-- }))                                                                        -->
-<!--                                                                            -->
-<!-- zmiennosc <- do.call(rbind, lapply(vars_ciagle, function(v) {              -->
-<!--   x <- dane[[v]]                                                           -->
-<!--   data.frame(                                                              -->
-<!--     Zmienna = v,                                                           -->
-<!--     SD      = round(sd(x), 2),                                             -->
-<!--     Rozstep = round(max(x) - min(x), 2)                                    -->
-<!--   )                                                                        -->
-<!-- }))                                                                        -->
-<!-- ```                                                                        -->
+\vspace{0.5cm}
 
-Nie, nie wszystkie zmienne mają rozkład symetryczny. `tenure`
-jest dość bliska symetrii, choć z lekką prawostronną asymetrią.
-`MonthlyCharges` ma nieznaczną lewostronną asymetrię, co widać po
-tym, że średnia jest odrobinę mniejsza od mediany. Z kolei
-`TotalCharges` jest wyraźniej prawostronnie skośna, ponieważ
-wielu klientów ma umiarkowane łączne opłaty, a niewielka grupa bardzo
-długo korzysta z usług i generuje dużo większe sumy.
+**(2) W przypadku zmiennych ilościowych:**\newline
+i. Czy wszystkie zmienne mają rozkład symetryczny?\newline
+ii. Które cechy charakteryzują się największą zmiennością?
 
-Największą zmiennością bezwzględną charakteryzuje się
-`TotalCharges` (największe odchylenie standardowe i rozstęp), a
-następnie `tenure`. `MonthlyCharges` są mniej rozproszone,
-ale nadal pokazują zauważalny zakres wartości.
+```{r et2_obliczenia_zmiennosc, include=FALSE}
+#Obliczenia współczynnika zmienności (CV = SD/Mean * 100), gdzie sd to odchyelenie a mean średnia
+cv_tenure <- round((sd(dane$tenure, na.rm=TRUE) / mean(dane$tenure, na.rm=TRUE)) * 100, 2)
+cv_monthly <- round((sd(dane$MonthlyCharges, na.rm=TRUE) / mean(dane$MonthlyCharges, na.rm=TRUE)) * 100, 2)
+cv_total <- round((sd(dane$TotalCharges, na.rm=TRUE) / mean(dane$TotalCharges, na.rm=TRUE)) * 100, 2)
+```
 
-**(3) W przypadku zmiennych jakościowych:**\newline i. Co można
-powiedzieć o częstości przyjmowania poszczególnych kategorii?
+**Odpowiedź i.** Nie, nie wszystkie zmienne mają rozkład symetryczny:
 
-<!-- ```{r czestosci_jakosciowe, echo=TRUE}                 -->
-<!-- round(prop.table(table(dane$gender)) * 100, 1)         -->
-<!-- round(prop.table(table(dane$Partner)) * 100, 1)        -->
-<!-- round(prop.table(table(dane$Dependents)) * 100, 1)     -->
-<!-- round(prop.table(table(dane$PhoneService)) * 100, 1)   -->
-<!-- round(prop.table(table(dane$Contract)) * 100, 1)       -->
-<!-- round(prop.table(table(dane$PaymentMethod)) * 100, 1)  -->
-<!-- round(prop.table(table(dane$OnlineSecurity)) * 100, 1) -->
-<!-- round(prop.table(table(dane$TechSupport)) * 100, 1)    -->
-<!-- ```                                                    -->
+* Zmienna `tenure` jest dość bliska symetrii, choć widać skupiska na krańcach rozkładu.
+* Zmienna `MonthlyCharges` posiada delikatną lewostronną asymetrię (średnia jest odrobinę mniejsza od mediany, a najwięcej klientów ma relatywnie wysokie pakiety miesięczne).
+* Zmienna `TotalCharges` jest wyraźnie **prawostronnie skośna** (asymetryczna). Wynika to z faktu, że bardzo wielu klientów ma niski staż (i przez to niskie łączne opłaty), a relatywnie niewielka grupa wieloletnich klientów z najdroższymi pakietami "ciągnie" prawy ogon rozkładu daleko w stronę wysokich kwot.
 
-Rozkłady cech jakościowych są dość nierównomierne. Cechy
-`gender` (`Female`: `r round(100 * prop.table(table(dane$gender))["Female"], 2)`\%)
-i `Partner` (`Yes`: `r round(100 * prop.table(table(dane$Partner))["Yes"], 2)`\%)
-są relatywnie zbilansowane, ale już `Dependents` częściej
-przyjmuje wartość `No`
-(`r round(100 * prop.table(table(dane$Dependents))["No"], 2)`\%).
-Zdecydowana większość klientów ma `PhoneService == Yes`
-(`r round(100 * prop.table(table(dane$PhoneService))["Yes"], 2)`\%).
-Najbardziej popularnym typem umowy jest `Month-to-month`
-(`r round(100 * prop.table(table(dane$Contract))["Month-to-month"], 2)`\%),
-a wśród sposobów płatności dominuje `Electronic check`
-(`r round(100 * prop.table(table(dane$PaymentMethod))["Electronic check"], 2)`\%).
-W wielu usługach dodatkowych, takich jak `OnlineSecurity` i
-`TechSupport`, najczęściej występuje odpowiedź `No`
-(odpowiednio
-`r round(100 * prop.table(table(dane$OnlineSecurity))["No"], 2)`\% oraz
-`r round(100 * prop.table(table(dane$TechSupport))["No"], 2)`\%),
-co sugeruje, że duża część klientów korzysta z podstawowego pakietu
-usług bez dodatkowych zabezpieczeń i wsparcia.
+**Odpowiedź ii.** Największą zmiennością bezwzględną (rozstęp i odchylenie standardowe) charakteryzuje się `TotalCharges`. Jednak, ponieważ zmienne te mają różne jednostki (miesiące vs dolary), najbardziej miarodajne jest użycie współczynnika zmienności (CV). Potwierdza on tę obserwację: największą zmiennością względną cechuje się `TotalCharges` (CV = `r cv_total`%), na drugim miejscu jest staż `tenure` (CV = `r cv_tenure`%), a najmniejsze zróżnicowanie występuje dla `MonthlyCharges` (CV = `r cv_monthly`%).
 
-# Etap 3: Analiza opisowa z podziałem na grupy
+\vspace{0.5cm}
+
+**(3) W przypadku zmiennych jakościowych:**\newline
+i. Co można powiedzieć o częstości przyjmowania poszczególnych kategorii?
+
+Rozkłady cech jakościowych są dość zróżnicowane, co pozwala na sformułowanie kilku kluczowych wniosków na temat profilu typowego klienta:
+
+* **Cechy zbilansowane:** Zmienna `gender` dzieli bazę niemal idealnie na pół (kobiety stanowią `r round(100 * prop.table(table(dane$gender))["Female"], 1)`%). Podobnie sytuacja wygląda z posiadaniem partnera (`Partner` = Yes stanowi `r round(100 * prop.table(table(dane$Partner))["Yes"], 1)`%).
+* **Demografia:** W zmiennej `Dependents` dominuje kategoria `No` (`r round(100 * prop.table(table(dane$Dependents))["No"], 1)`%), co oznacza, że większość to osoby bez nikogo na utrzymaniu.
+* **Usługi podstawowe:** Zdecydowana większość klientów korzysta z usług telefonicznych (`PhoneService` = Yes: `r round(100 * prop.table(table(dane$PhoneService))["Yes"], 1)`%).
+* **Finanse:** Najbardziej popularnym typem umowy jest ryzykowna dla firmy umowa z miesiąca na miesiąc `Month-to-month` (`r round(100 * prop.table(table(dane$Contract))["Month-to-month"], 1)`%), a wśród sposobów płatności dominuje `Electronic check` (`r round(100 * prop.table(table(dane$PaymentMethod))["Electronic check"], 1)`%).
+* **Usługi dodatkowe (wsparcie i bezpieczeństwo):** W wielu dodatkowych opcjach najczęściej występuje odpowiedź `No`. Dla `OnlineSecurity` jest to `r round(100 * prop.table(table(dane$OnlineSecurity))["No"], 1)`%, a dla `TechSupport` `r round(100 * prop.table(table(dane$TechSupport))["No"], 1)`%. Sugeruje to, że duża część klientów wybiera jedynie podstawowe opcje dostępu, rezygnując z dodatkowych zabezpieczeń i wsparcia.
+
+# Analiza opisowa z podziałem na grupy
 
 ## Podpunkt (a)
 
 **Przeprowadź analizę opisową, podobnie jak w etapie 2 (wyznaczając
 wskaźniki opisowe i podstawowe wykresy), tym razem jednak z podziałem na
-dwie grupy:**\newline grupa 1: Churn==’Yes’ – grupa klientów, którzy
-odeszli (zrezygnowali), \newline grupa 2: Churn==’No’ – grupa lojalnych
+dwie grupy:**\newline grupa 1: Churn=='Yes' - grupa klientów, którzy
+odeszli (zrezygnowali), \newline grupa 2: Churn=='No' - grupa lojalnych
 klientów (korzystają dalej z usług firmy).
 
 W grupach Churn == Yes i Churn == No porównujemy przede wszystkim
@@ -610,6 +647,25 @@ boxplot(MonthlyCharges ~ Churn, data = dane, col = c("#A6CEE3", "#FB9A99"), main
 boxplot(TotalCharges ~ Churn, data = dane, col = c("#A6CEE3", "#FB9A99"), main = "TotalCharges", ylab = "Łączne opłaty")
 ```
 
+Dodatkowo, dla jeszcze lepszego zobrazowania dysproporcji w czasie pozostawania w firmie, poniżej jest wykres gęstości dla zmiennej `tenure`.
+
+```{r wykres_gestosci_tenure, echo=FALSE, fig.cap="Rozkład gęstości stażu klienta w podziale na grupy.", out.width="100%"}
+gestosc_no <- density(dane$tenure[dane$Churn == "No"], na.rm = TRUE)
+gestosc_yes <- density(dane$tenure[dane$Churn == "Yes"], na.rm = TRUE)
+
+plot(gestosc_no, col = "#1F78B4", lwd = 3,
+     main = "Rozkład gęstości stażu (tenure) w zależności od Churn",
+     xlab = "Staż w miesiącach", ylab = "Gęstość prawdopodobieństwa",
+     ylim = c(0, max(c(gestosc_no$y, gestosc_yes$y)) + 0.01))
+lines(gestosc_yes, col = "#E31A1C", lwd = 3)
+polygon(gestosc_no, col=rgb(0.12, 0.47, 0.7, 0.2), border=NA)
+polygon(gestosc_yes, col=rgb(0.89, 0.1, 0.11, 0.2), border=NA)
+legend("topright", legend = c("Został (No)", "Odszedł (Yes)"),
+       fill = c(rgb(0.12, 0.47, 0.7, 0.5), rgb(0.89, 0.1, 0.11, 0.5)), bty = "n")
+```
+Powyższy wykres gęstości (Rysunek \ref{fig:wykres_gestosci_tenure}) mocno pokazuje, że rozkład dla klientów odchodzących (kolor czerwony) jest skrajnie prawoskośny - kumulują się oni w pierwszych miesiącach trwania umowy. Klienci pozostający (kolor niebieski) mają natomiast rozkład bardziej równomierny, z wyraźnym skupiskiem przy maksymalnym stażu.
+
+
 ```{r wykresy_churn_cat, echo=FALSE, fig.cap="Porównanie Contract oraz InternetService względem Churn", fig.height=3.5, fig.width=8, out.width='\\linewidth', fig.align='center'}
 contract_churn <- prop.table(table(dane$Contract, dane$Churn), 2)
 internet_churn <- prop.table(table(dane$InternetService, dane$Churn), 2)
@@ -634,6 +690,27 @@ barplot(internet_churn,
         ylim = c(0, 1.15),
         ylab = "Udział w grupie")
 ```
+
+Poniżej widzimy wykresy dla metod płatności oraz usług wsparcia technicznego, które jak się zaraz okaże również odgrywają kluczową rolę w procesie rezygnacji.
+
+```{r wykresy_churn_nowe, echo=FALSE, fig.cap="Wpływ metody płatności i wsparcia technicznego na decyzję o odejściu.", fig.height=4, fig.width=8, out.width="100%"}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+#Payment Method
+payment_churn <- prop.table(table(dane$PaymentMethod, dane$Churn), 2)
+barplot(payment_churn, beside = TRUE,
+        col = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072"),
+        main = "PaymentMethod vs Churn", ylab = "Udział w grupie", ylim = c(0, 0.65))
+legend("topleft", legend = rownames(payment_churn),
+       fill = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072"), bty = "n", cex = 0.6)
+
+#TechSupport
+mosaicplot(table(dane$TechSupport, dane$Churn),
+           main = "TechSupport vs Churn",
+           xlab = "Wsparcie techniczne", ylab = "Czy odszedł? (Churn)",
+           color = c("#A6CEE3", "#FB9A99"), border = "white")
+```
+Zestawienie (Rysunek \ref{fig:wykresy_churn_nowe}) po lewej stronie obrazuje, że w grupie osób odchodzących (słupki dla "Yes") dominuje forma płatności *Electronic check*. Z kolei wykres mozaikowy po prawej wskazuje, że odsetek rezygnacji (wysokość różowego obszaru) jest nieproporcjonalnie wysoki wśród osób nieposiadających wsparcia technicznego (*No*).
 
 ```{r tabela_churn_cat, echo=FALSE, results='asis'}
 udzial_kategorii <- function(zmienna, kategoria) {
@@ -723,18 +800,15 @@ Tabela \ref{tab:churn.cat.udzial} pokazuje wprost, dla których cech
 jakościowych różnice między grupami są największe: im większa
 bezwzględna wartość różnicy udziałów, tym wyraźniej dana kategoria
 odróżnia klientów odchodzących od pozostających. Widać tu m.in. dużo
-większy udział umów month-to-month oraz płatności electronic check wśród
+większy udział umów *month-to-month* oraz płatności *electronic check* wśród
 klientów odchodzących.
 
-Łącznie tabele i wykresy pozwalają wskazać cechy, które najwyraźniej
-odróżniają obie grupy bez odwoływania się do bardziej zaawansowanych
-miar. W przypadku zmiennych ilościowych najbardziej czytelne różnice
+W przypadku zmiennych ilościowych najbardziej czytelne różnice
 widać dla `tenure`: klienci odchodzący mają wyraźnie krótszy staż niż
 klienci pozostający. Różnice dla `MonthlyCharges` i `TotalCharges` są
 również widoczne, ale mniej jednoznaczne niż dla długości relacji z
-firmą. Wśród zmiennych jakościowych szczególnie wyraźnie odróżniają się
-typ umowy, korzystanie z usług bezpieczeństwa i wsparcia technicznego,
-rodzaj internetu oraz sposób płatności.
+firmą.
+
 
 ## Podpunkt (b)
 
@@ -743,20 +817,29 @@ które ze zmiennych wykazują największe zróżnicowanie wartości/rozkładu w
 grupach,\newline tzn. pozwalają na najlepsze rozróżnienie klientów z
 dwóch grup?
 
-Na podstawie tabel \ref{tab:churn.num} oraz \ref{tab:churn.cat.udzial}
-widać, że do cech najsilniej różnicujących grupy należą `Contract`,
-`OnlineSecurity`, `TechSupport`, `InternetService`,
-`PaymentMethod` oraz `PaperlessBilling`. Spośród zmiennych ilościowych
-najsilniej grupy rozróżnia `tenure`, a słabiej, ale nadal wyraźnie,
-także `MonthlyCharges` i `TotalCharges`. Klienci odchodzący
-zdecydowanie częściej mają umowy
-month-to-month, krótszy staż, wyższe miesięczne opłaty i znacznie
-rzadziej korzystają z usług bezpieczeństwa oraz wsparcia technicznego.
-Jednocześnie ich `TotalCharges` są przeciętnie niższe, co jest spójne z
-krótszym okresem pozostawania w firmie. Zmiennymi słabo rozróżniającymi
-grupy są natomiast `gender` oraz `PhoneService`.
+Na podstawie analizy miar opisowych (Tabela \ref{tab:churn.num}) oraz różnic w udziałach kategorii (Tabela \ref{tab:churn.cat.udzial}), możemy podzielić analizowane cechy pod kątem ich zdolności do rozróżniania obu grup klientów.
 
-# Etap 4: Podsumowanie - wnioski z przeprowadzonej analizy
+**1. Zmienne silnie różnicujące (kluczowe czynniki ryzyka odejścia):**
+
+* **`Contract` (Rodzaj umowy):** To zdecydowanie najsilniejszy czynnik różnicujący. Klienci odchodzący w przytłaczającej większości posiadają umowy odnawiane z miesiąca na miesiąc (*Month-to-month*), co nie sprawia, że niechętnie odchodzą. Klienci z umowami długoterminowymi (rocznymi i dwuletnimi) rzadko rezygnują z usług.
+* **`tenure` (Staż klienta):** Najsilniej różnicująca zmienna ilościowa. Klienci odchodzący charakteryzują się znacznie krótszym czasem korzystania z usług (mediana na poziomie zaledwie 10 miesięcy) w porównaniu do grupy pozostającej, która jest z firmą średnio od blisko 40 miesięcy.
+* **Usługi dodatkowe (`OnlineSecurity`, `TechSupport`):** Brak tych usług drastycznie zwiększa prawdopodobieństwo odejścia. Klienci, którzy nie korzystają ze wsparcia technicznego i zabezpieczeń sieciowych, znacznie częściej rezygnują, co może wynikać z gorszego doświadczenia użytkownika (np. problemów z konfiguracją lub braku pomocy przy awariach).
+* **`InternetService` (Rodzaj internetu):** Klienci posiadający szybki internet światłowodowy (*Fiber optic*) o wiele częściej rezygnują z usług niż użytkownicy tradycyjnego łącza DSL lub osoby bez internetu. Może to sugerować problemy z jakością tej konkretnej usługi lub zbyt wysoką cenę w stosunku do oczekiwań.
+
+**2. Zmienne umiarkowanie różnicujące:**
+
+* **`PaymentMethod` (Metoda płatności):** Zauważalnie wyższy odsetek odejść występuje wśród klientów płacących czekiem elektronicznym (*Electronic check*). Automatyczne metody płatności (karta kredytowa, przelew) sprzyjają większej chęci do pozostania.
+* **`PaperlessBilling` (Rachunki elektroniczne):** Klienci odchodzący częściej korzystają z rachunków w formie papierowej/elektronicznej, co koreluje z profilem klienta nowocześniejszego, łatwiej zmieniającego dostawców.
+* **Zmienne finansowe (`MonthlyCharges`, `TotalCharges`):** Klienci odchodzący płacą wyższe rachunki miesięczne (co nie sprawia, że chcą korzystać z tych usług), jednak z racji krótkiego stażu, ich łączne wydatki w firmie (`TotalCharges`) są relatywnie niskie w porównaniu z lojalnymi użytkownikami.
+
+**3. Zmienne słabo różnicujące (nieprzydatne do identyfikacji):**
+
+* **`gender` (Płeć):** Rozkład płci w obu grupach jest niemal identyczny (oscyluje w granicach 50%), co oznacza, że płeć nie ma żadnego wpływu na decyzję o odejściu.
+* **`PhoneService` (Usługa telefoniczna):** Posiadanie stacjonarnego telefonu nie różnicuje znacząco klientów lojalnych od odchodzących.
+
+
+
+# Podsumowanie - wnioski z przeprowadzonej analizy
 
 ## Podpunkt (a)
 
@@ -764,13 +847,13 @@ grupy są natomiast `gender` oraz `PhoneService`.
 można wyciągnąć na podstawie przeprowadzonych analiz?
 
 W etapie 1 przygotowano dane do analizy: usunięto identyfikator
-`customerID` oraz 11 brakujących obserwacji w kolumnie `TotalCharges`.
+`customerID` oraz 11 brakujących obserwacji w kolumnie `TotalCharges` (zastępując je zerami).
 Ostatecznie do dalszej analizy wykorzystano 7032 rekordy i 20 cech. Etap
 2 pokazał, że rozkłady zmiennych ilościowych nie są idealnie
-symetryczne, a część cech jakościowych ma wyraźnie niezrównoważone
+symetryczne (szczególnie prawoskośne `TotalCharges` i dwumodalne `tenure`), a część cech jakościowych ma wyraźnie niezrównoważone
 kategorie. Etap 3 pokazał, że klientów odchodzących najsilniej
-odróżniają: krótszy staż, typ umowy, wybrane cechy usług dodatkowych,
-sposób płatności oraz korzystanie z e-faktur, a także w mniejszym
+odróżniają: krótszy staż (bardzo widoczne skupisko odejść w pierwszych miesiącach na wykresie gęstości), typ umowy, wybrane cechy usług dodatkowych (zwłaszcza brak wsparcia technicznego),
+sposób płatności, rodzaj dostarczanego internetu oraz korzystanie z e-faktur, a także w mniejszym
 stopniu miesięczne i łączne opłaty.
 
 ## Podpunkt (b)
@@ -779,12 +862,12 @@ stopniu miesięczne i łączne opłaty.
 analizę danych?**\newline Jakie są ich główne cechy? \newline Z jakich
 usług korzystają najczęściej?
 
-Klienci firmy są dość zróżnicowani, ale w danych dominuje profil osoby
-korzystającej z usług telefonicznych i internetowych, co jest spójne z opisem danych
-(branża telco), często z umową month-to-month. Z dodatkowych opcji wielu klientów
+Klienci firmy są dość zróżnicowani, ale w danych dominuje profil osoby (najczęściej bez nikogo na utrzymaniu)
+korzystającej z usług telefonicznych i internetowych (w tym najpopularniejszego światłowodu), często z umową month-to-month. Z dodatkowych opcji wielu klientów
 nie korzysta, zwłaszcza z usług bezpieczeństwa i wsparcia. Płeć nie wydaje się
 mieć większego znaczenia, natomiast istotniejsze są cechy związane z długością
-korzystania z usług, rodzajem umowy i zakresem pakietu.
+korzystania z usług, rodzajem umowy i zakresem pakietu. Dodatkowo, analiza ujawniła, że klienci, którzy nie korzystają 
+z usługi internetu firmy stanowią najstabilniejszą i najmniej skłonną do odejść grupę w firmie.
 
 ## Podpunkt (c)
 
@@ -804,15 +887,14 @@ dla umowy dwuletniej), płacących przez `Electronic check`
 niekorzystających z `OnlineSecurity`
 (`r round(100 * prop.table(table(dane$OnlineSecurity, dane$Churn), 1)["No", "Yes"], 2)`\%)
 oraz `TechSupport`
-(`r round(100 * prop.table(table(dane$TechSupport, dane$Churn), 1)["No", "Yes"], 2)`\%).
-Rezygnujący klienci często krócej są związani z firmą i mają wyższe miesięczne opłaty.
+(`r round(100 * prop.table(table(dane$TechSupport, dane$Churn), 1)["No", "Yes"], 2)`\%), a także u posiadaczy internetu światłowodowego (`Fiber optic`).
+Rezygnujący klienci często znacznie krócej są związani z firmą (najwięcej rezygnacji w początkowych miesiącach) i mają wyższe miesięczne opłaty.
 
 Aby przeciwdziałać churnowi, firma powinna:
 
--   zachęcać do dłuższych umów
--   kierować działania retencyjne do nowych klientów oraz osób z
-    wysokimi miesięcznymi opłatami,
--   monitorować klientów korzystających z umów month-to-month i
-    proponować im bardziej korzystne warunki przed rezygnacją,
--   oferować pakiety łączące podstawowe usługi z bezpieczeństwem i
-    wsparciem technicznym,
+-   zachęcać do dłuższych umów,
+-   proponować darmowy okres próbny na wsparcie techniczne, by ułatwić im wdrożenie oraz zaoferować coś dla osób z wysokimi miesięcznymi opłatami,
+-   monitorować klientów korzystających z umów month-to-month i proponować im bardziej korzystne warunki przed rezygnacją,
+-   oferować pakiety łączące podstawowe usługi z bezpieczeństwem i wsparciem technicznym,
+-   zbadać stosunek jakości do ceny usługi światłowodowej (`Fiber optic`), gdyż pomimo popularności, generuje ona najwięcej odejść,
+-   zachęcać klientów do przejścia z płatności `Electronic check` na formy w pełni zautomatyzowane (np. karta kredytowa).
