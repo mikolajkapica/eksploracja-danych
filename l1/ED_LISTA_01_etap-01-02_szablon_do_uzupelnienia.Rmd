@@ -74,7 +74,7 @@ str(dane)
 ```
 
 Typy poszczególnych zmiennych można sprawdzić za pomocą funkcji
-\texttt{str()}.
+`str()`.
 
 ## Podpunkt (b)
 
@@ -85,7 +85,7 @@ cech, natomiast w zbiorze używanym do dalszej analizy pozostaje
 `r nrow(dane)` przypadków i `r ncol(dane)` cech.
 
 Zmienna \textbf{SeniorCitizen} jest binarnym wskaźnikiem, więc została
-zamieniona na typ logiczny (\texttt{FALSE}/\texttt{TRUE}).
+zamieniona na typ logiczny (`FALSE`/`TRUE`).
 
 Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
 
@@ -138,7 +138,7 @@ liczba_unikatowych_id <- length(unique(dane_raw$customerID))
 liczba_unikatowych_id
 ```
 
-Zmienna \texttt{customerID} ma `r liczba_unikatowych_id` unikatowych
+Zmienna `customerID` ma `r liczba_unikatowych_id` unikatowych
 wartości, więc pełni rolę identyfikatora klientów i nie wnosi informacji
 do analizy. Ponieważ nie jest potrzebna do dalszej analizy, została
 usunięta ze zbioru danych na etapie wczytywania danych.
@@ -172,12 +172,12 @@ Informacja na temat braków danych (numery wierszy i nazwy cech) są
 podane w tabeli \ref{tab:na.dane}.
 
 Wszystkie braki danych `r sum(is.na(dane_raw$TotalCharges))` występują
-wyłącznie w kolumnie \texttt{TotalCharges}. Dotyczą one tylko obserwacje
-z \texttt{tenure = 0}. Wszystkie te przypadki mają \texttt{Churn == "No"}.
+wyłącznie w kolumnie `TotalCharges`. Dotyczą one tylko obserwacje
+z `tenure = 0`. Wszystkie te przypadki mają `Churn == "No"`.
 Dla tych obserwacji najprawdopodobniej nie zdążono jeszcze naliczyć
 łącznej opłaty lub klienci są na pewnej ofercie próbnej. Aby nie utracić
 danych tych klientów do analizy, zdecydowano na ustalenie wartości
-\texttt{TotalCharges} dla tych obserwacji na \texttt{0}.
+`TotalCharges` dla tych obserwacji na `0`.
 
 **Czy w danych występują nietypowe wartości (np. niestandardowe
 kodowanie brakujących obserwacji)?**
@@ -185,8 +185,8 @@ kodowanie brakujących obserwacji)?**
 Przegląd unikatowych wartości zmiennych z szczegółowego wykazu wszystkich
 możliwych wartości cech jakościowych oraz zakresów zmiennych liczbowych nie
 wskazuje na niestandardowe kodowanie brakujących obserwacji. Jedyny przypadek
-braków dotyczył kolumny \texttt{TotalCharges}, gdzie brakujące wartości były
-zapisane jako puste pola i wczytane jako \texttt{NA}.
+braków dotyczył kolumny `TotalCharges`, gdzie brakujące wartości były
+zapisane jako puste pola i wczytane jako `NA`.
 
 # Etap 2: Analiza opisowa - wskaźniki sumaryczne i wykresy
 
@@ -377,7 +377,7 @@ boxplot(dane$MonthlyCharges,
 
 A teraz wykresy dla dla zmiennych jakościowych. Ze względu na dużą liczbę
 cech jakościowych pokazujemy reprezentatywny przykład dla zmiennej
-\texttt{Contract}, natomiast dla pozostałych zmiennych podobną rolę
+`Contract`, natomiast dla pozostałych zmiennych podobną rolę
 pełnią tabele liczności i udziały kategorii.
 
 ```{r, zmienne_jakosciowe, echo=FALSE, fig.cap="Wykres słupkowy i kołowy dla zmiennej Contract", fig.height=5}
@@ -452,14 +452,14 @@ pairs(dane[, vars_ciagle],
       main = "Zależności między zmiennymi ciągłymi")
 ```
 
-Najsilniejsza zależność liniowa występuje między \texttt{tenure} i
-\texttt{TotalCharges} (korelacja `r round(cor(dane$tenure, dane$TotalCharges), 3)`),
+Najsilniejsza zależność liniowa występuje między `tenure` i
+`TotalCharges` (korelacja `r round(cor(dane$tenure, dane$TotalCharges), 3)`),
 co było oczekiwane, ponieważ całkowite opłaty rosną wraz z czasem
-korzystania z usług. Zależność między \texttt{MonthlyCharges} i
-\texttt{TotalCharges} jest również dodatnia i umiarkowanie silna
+korzystania z usług. Zależność między `MonthlyCharges` i
+`TotalCharges` jest również dodatnia i umiarkowanie silna
 (`r round(cor(dane$MonthlyCharges, dane$TotalCharges), 3)`), co oznacza, że wyższe
 miesięczne rachunki przekładają się zwykle na większe opłaty łączne.
-Natomiast związek \texttt{tenure} z \texttt{MonthlyCharges} jest
+Natomiast związek `tenure` z `MonthlyCharges` jest
 wyraźnie słabszy (`r round(cor(dane$tenure, dane$MonthlyCharges), 3)`), co
 wskazuje, że długość pozostawania klienta w firmie nie determinuje
 bezpośrednio wysokości miesięcznego abonamentu.
@@ -472,11 +472,11 @@ pytania:**
 **(1) Jaki jest zakres możliwych wartości dla poszczególnych
 zmiennych?**
 
-Zakresy najważniejszych zmiennych są następujące: \texttt{SeniorCitizen}
-przyjmuje wartości \texttt{FALSE} lub \texttt{TRUE} (oryginalnie 0/1),
-\texttt{tenure} mieści się w przedziale od 1 do 72 miesięcy,
-\texttt{MonthlyCharges} od 18.25 do 118.75, a
-\texttt{TotalCharges} od 18.80 do 8684.80. Zmienne jakościowe przyjmują
+Zakresy najważniejszych zmiennych są następujące: `SeniorCitizen`
+przyjmuje wartości `FALSE` lub `TRUE` (oryginalnie 0/1),
+`tenure` mieści się w przedziale od 1 do 72 miesięcy,
+`MonthlyCharges` od 18.25 do 118.75, a
+`TotalCharges` od 18.80 do 8684.80. Zmienne jakościowe przyjmują
 natomiast skończony zbiór kategorii opisujących płeć, sytuację rodzinną,
 rodzaj usługi internetowej, pakiet umowy oraz sposób płatności.
 
@@ -506,17 +506,17 @@ się największą zmiennością?
 <!-- }))                                                                        -->
 <!-- ```                                                                        -->
 
-Nie, nie wszystkie zmienne mają rozkład symetryczny. \texttt{tenure}
+Nie, nie wszystkie zmienne mają rozkład symetryczny. `tenure`
 jest dość bliska symetrii, choć z lekką prawostronną asymetrią.
-\texttt{MonthlyCharges} ma nieznaczną lewostronną asymetrię, co widać po
+`MonthlyCharges` ma nieznaczną lewostronną asymetrię, co widać po
 tym, że średnia jest odrobinę mniejsza od mediany. Z kolei
-\texttt{TotalCharges} jest wyraźniej prawostronnie skośna, ponieważ
+`TotalCharges` jest wyraźniej prawostronnie skośna, ponieważ
 wielu klientów ma umiarkowane łączne opłaty, a niewielka grupa bardzo
 długo korzysta z usług i generuje dużo większe sumy.
 
 Największą zmiennością bezwzględną charakteryzuje się
-\texttt{TotalCharges} (największe odchylenie standardowe i rozstęp), a
-następnie \texttt{tenure}. \texttt{MonthlyCharges} są mniej rozproszone,
+`TotalCharges` (największe odchylenie standardowe i rozstęp), a
+następnie `tenure`. `MonthlyCharges` są mniej rozproszone,
 ale nadal pokazują zauważalny zakres wartości.
 
 **(3) W przypadku zmiennych jakościowych:**\newline i. Co można
@@ -534,19 +534,19 @@ powiedzieć o częstości przyjmowania poszczególnych kategorii?
 <!-- ```                                                    -->
 
 Rozkłady cech jakościowych są dość nierównomierne. Cechy
-\texttt{gender} (\texttt{Female}: `r round(100 * prop.table(table(dane$gender))["Female"], 2)`\%)
-i \texttt{Partner} (\texttt{Yes}: `r round(100 * prop.table(table(dane$Partner))["Yes"], 2)`\%)
-są relatywnie zbilansowane, ale już \texttt{Dependents} częściej
-przyjmuje wartość \texttt{No}
+`gender` (`Female`: `r round(100 * prop.table(table(dane$gender))["Female"], 2)`\%)
+i `Partner` (`Yes`: `r round(100 * prop.table(table(dane$Partner))["Yes"], 2)`\%)
+są relatywnie zbilansowane, ale już `Dependents` częściej
+przyjmuje wartość `No`
 (`r round(100 * prop.table(table(dane$Dependents))["No"], 2)`\%).
-Zdecydowana większość klientów ma \texttt{PhoneService == Yes}
+Zdecydowana większość klientów ma `PhoneService == Yes`
 (`r round(100 * prop.table(table(dane$PhoneService))["Yes"], 2)`\%).
-Najbardziej popularnym typem umowy jest \texttt{Month-to-month}
+Najbardziej popularnym typem umowy jest `Month-to-month`
 (`r round(100 * prop.table(table(dane$Contract))["Month-to-month"], 2)`\%),
-a wśród sposobów płatności dominuje \texttt{Electronic check}
+a wśród sposobów płatności dominuje `Electronic check`
 (`r round(100 * prop.table(table(dane$PaymentMethod))["Electronic check"], 2)`\%).
-W wielu usługach dodatkowych, takich jak \texttt{OnlineSecurity} i
-\texttt{TechSupport}, najczęściej występuje odpowiedź \texttt{No}
+W wielu usługach dodatkowych, takich jak `OnlineSecurity` i
+`TechSupport`, najczęściej występuje odpowiedź `No`
 (odpowiednio
 `r round(100 * prop.table(table(dane$OnlineSecurity))["No"], 2)`\% oraz
 `r round(100 * prop.table(table(dane$TechSupport))["No"], 2)`\%),
@@ -797,13 +797,13 @@ przeciwdziałać odchodzeniu klientów?
 Analiza nie wykazuje jednej dominującej przyczyny rezygnacji,
 ale wskazuje na grupy klientów o podwyższonym ryzyku churnu.
 Najwyższe współczynniki odchodzenia obserwujemy u klientów z umową
-\texttt{Month-to-month} (`r round(100 * prop.table(table(dane$Contract, dane$Churn), 1)["Month-to-month", "Yes"], 2)`\%
+`Month-to-month` (`r round(100 * prop.table(table(dane$Contract, dane$Churn), 1)["Month-to-month", "Yes"], 2)`\%
 vs `r round(100 * prop.table(table(dane$Contract, dane$Churn), 1)["Two year", "Yes"], 2)`\%
-dla umowy dwuletniej), płacących przez \texttt{Electronic check}
+dla umowy dwuletniej), płacących przez `Electronic check`
 (`r round(100 * prop.table(table(dane$PaymentMethod, dane$Churn), 1)["Electronic check", "Yes"], 2)`\%),
-niekorzystających z \texttt{OnlineSecurity}
+niekorzystających z `OnlineSecurity`
 (`r round(100 * prop.table(table(dane$OnlineSecurity, dane$Churn), 1)["No", "Yes"], 2)`\%)
-oraz \texttt{TechSupport}
+oraz `TechSupport`
 (`r round(100 * prop.table(table(dane$TechSupport, dane$Churn), 1)["No", "Yes"], 2)`\%).
 Rezygnujący klienci często krócej są związani z firmą i mają wyższe miesięczne opłaty.
 
