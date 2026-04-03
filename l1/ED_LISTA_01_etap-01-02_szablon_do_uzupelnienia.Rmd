@@ -12,6 +12,7 @@ output:
 header-includes:
 - \usepackage[OT4]{polski}
 - \usepackage[utf8]{inputenc}
+- \usepackage{booktabs}
 - \usepackage{graphicx}
 - \usepackage{float}
 subtitle: Eksploracja danych
@@ -46,8 +47,9 @@ dane_raw <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv",
 dane <- dane_raw
 # Cecha `customerID` nie jest przydatna do analizy
 dane$customerID <- NULL
-# Skoro `sum(!complete.cases(dane_raw))` to tylko `11` usuwamy je
-dane <- dane[complete.cases(dane), ]
+# Uzasadnienie zerowania wartości `TotalCharges` dla brakujących
+# obserwacji znajduje się w podpunkcie 1b)
+dane[is.na(dane$TotalCharges), "TotalCharges"] <- 0
 dane[] <- lapply(dane, function(x) if (is.character(x)) factor(x) else x)
 # Zamiana zmiennej SeniorCitizen z 0/1 na FALSE/TRUE
 dane$SeniorCitizen <- as.logical(dane$SeniorCitizen)
@@ -78,7 +80,7 @@ zamieniona na typ logiczny (\texttt{FALSE}/\texttt{TRUE}).
 Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
 
 \begin{itemize}
-\item \textbf{customerID} (character) - identyfikator klienta; unikalny kod dla każdego klienta
+\item \textbf{customerID} (character) - identyfikator klienta; unikatowy kod dla każdego klienta
 \item \textbf{gender} (factor; poziomy: `r paste(levels(dane$gender), collapse = ", ")`) - płeć klienta
 \item \textbf{SeniorCitizen} (logiczny; poziomy: `r paste(levels(as.factor(dane$SeniorCitizen)), collapse = ", ")`) - informacja, czy klient jest emerytem (oryginalnie kodowane jako 0/1, następnie przekonwertowane na typ logiczny)
 \item \textbf{Partner} (factor; poziomy: `r paste(levels(dane$Partner), collapse = ", ")`) - informacja, czy klient ma partnera/partnerkę
@@ -111,7 +113,9 @@ tab_typy <- data.frame(
 )
 cat("\\begin{center}\n")
 knitr::kable(tab_typy,
-             format = "latex")
+             format = "latex",
+             booktabs = TRUE,
+             linesep = "")
 cat("\n\\end{center}")
 ```
 
@@ -125,11 +129,11 @@ identyfikatorów klientów? Jeżeli tak, to wskaż te cechy i usuń je przed
 dalszą analizą.**
 
 ```{r}
-liczba_unikalnych_id <- length(unique(dane_raw$customerID))
-liczba_unikalnych_id
+liczba_unikatowych_id <- length(unique(dane_raw$customerID))
+liczba_unikatowych_id
 ```
 
-Zmienna \texttt{customerID} ma `r liczba_unikalnych_id` unikalnych
+Zmienna \texttt{customerID} ma `r liczba_unikatowych_id` unikatowych
 wartości, więc pełni rolę identyfikatora klientów i nie wnosi informacji
 do analizy. Ponieważ nie jest potrzebna do dalszej analizy, została
 usunięta ze zbioru danych na etapie wczytywania danych.
@@ -154,6 +158,8 @@ tab_na <- tab_na[, c("Numer wiersza", "Cecha")]
 ```{r Braki danych, echo=FALSE, results='asis'}
 knitr::kable(tab_na,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              caption = "Braki w danych.",
              label = "na.dane")
 ```
@@ -161,10 +167,18 @@ knitr::kable(tab_na,
 Informacja na temat braków danych (numery wierszy i nazwy cech) są
 podane w tabeli \ref{tab:na.dane}.
 
+Wszystkie braki danych `r sum(is.na(dane_raw$TotalCharges))` występują
+wyłącznie w kolumnie \texttt{TotalCharges}. Dotyczą one tylko obserwacje
+z \texttt{tenure = 0}. Wszystkie te przypadki mają \texttt{Churn == "No"}.
+Dla tych obserwacji najprawdopodobniej nie zdążono jeszcze naliczyć
+łącznej opłaty lub klienci są na pewnej ofercie próbnej. Aby nie utracić
+danych tych klientów do analizy, zdecydowano na ustalenie wartości
+\texttt{TotalCharges} dla tych obserwacji na \texttt{0}.
+
 **Czy w danych występują nietypowe wartości (np. niestandardowe
 kodowanie brakujących obserwacji)?**
 
-Przegląd unikalnych wartości zmiennych z szczegółowego wykazu wszystkich
+Przegląd unikatowych wartości zmiennych z szczegółowego wykazu wszystkich
 możliwych wartości cech jakościowych oraz zakresów zmiennych liczbowych nie
 wskazuje na niestandardowe kodowanie brakujących obserwacji. Jedyny przypadek
 braków dotyczył kolumny \texttt{TotalCharges}, gdzie brakujące wartości były
@@ -202,6 +216,8 @@ tab_zmienne_ilosciowe <- do.call(rbind, lapply(vars_ilosciowe, function(v) {
 
 knitr::kable(tab_zmienne_ilosciowe,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              digits = 2,
              caption = "Podstawowe miary opisowe dla zmiennych ilościowych.",
              label = "zmienne.ilosciowe")
@@ -226,6 +242,8 @@ df1 <- data.frame(
 
 knitr::kable(df1,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              digits = 2,
              caption = "Miary położenia dla zmiennej MonthlyCharges.",
              label = "tab1")
@@ -249,6 +267,8 @@ df2 <- data.frame(
 
 knitr::kable(df2,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              digits = 2,
              caption = "Miary rozproszenia dla zmiennej MonthlyCharges.",
              label = "tab2")
@@ -263,6 +283,8 @@ df3 <- data.frame(
 
 knitr::kable(df3,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              digits = 3,
              caption = "Miary koncentracji i asymetrii dla zmiennej MonthlyCharges.", # nolint: line_length_linter.
              label = "tab3")
@@ -277,10 +299,11 @@ Oczywiście to nie wszystkie istotne pytania, na które warto odpowiedzieć. Moz
 \begin{itemize}
   \item Jak ma się średnia do mediany tzn. co jest większe? Co to może sugerować?
 
-Średnia wynosi `r mean(dane$MonthlyCharges)` a mediana `r median(dane$MonthlyCharges)`.
-Mediana jest większa od średniej.
-Sugeruje to lewostronną asymetrię rozkładu.
-Duża liczba obserwacji o niskich wartościach (szczyt wokół 20) silniej zaniża średnią arytmetyczną niż medianę.
+Średnia wynosi `r mean(dane$MonthlyCharges)` a mediana
+`r median(dane$MonthlyCharges)`. Mediana jest większa od średniej. Sugeruje to
+niewielką lewostronną asymetrię rozkładu, co potwierdza także ujemna skośność
+równa `r round(e1071::skewness(dane$MonthlyCharges), 3)`. Różnica między średnią
+i medianą nie jest jednak duża, więc asymetria też nie jest bardzo wyraźna.
 
 ```{r, rozklad_monthlycharges, echo=FALSE, fig.cap="Rozkład zmiennej MonthlyCharges", fig.height=3.5}
 plot(density(dane$MonthlyCharges, na.rm = TRUE),
@@ -291,24 +314,46 @@ plot(density(dane$MonthlyCharges, na.rm = TRUE),
 
   \item Czy medianie bliżej do pierwszego czy do trzeciego kwartyla?
 
-Mediana jest bliżej do trzeciego kwartyla.
+Odległość między medianą a pierwszym kwartylem wynosi
+`r round(median(dane$MonthlyCharges) - quantile(dane$MonthlyCharges, 0.25), 2)`,
+a odległość między medianą a trzecim kwartylem
+`r round(quantile(dane$MonthlyCharges, 0.75) - median(dane$MonthlyCharges), 2)`.
+Mediana jest bliżej do trzeciego kwartyla. Oznacza to, że środkowe 50\% obserwacji
+jest bardziej rozciągnięte po lewej stronie mediany niż po prawej.
 
   \item Czy pierwszemu kwartylowi bliżej do minimum, czy może trzeciemu do maksimum?
 
-Pierwszy kwartyl jest bliżej do minimum niż trzeciemu do maksimum.
+Odległość między pierwszym kwartylem a minimum wynosi
+`r round(quantile(dane$MonthlyCharges, 0.25) - min(dane$MonthlyCharges), 2)`, a
+odległość między trzecim kwartylem a maksimum
+`r round(max(dane$MonthlyCharges) - quantile(dane$MonthlyCharges, 0.75), 2)`.
+Pierwszemu kwartylowi jest bliżej do minimum niż trzeciemu kwartylowi do
+maksimum Oznacza to, że górny ogon rozkładu jest dłuższy niż dolny.
 
   \item Skąd może wynikać duża/mała rozpiętośc przyjmowanych wartości?
 
-Rozpiętość jest duża. Wynika z tego że bardzo dużo ofert ma wartość bliską 20 i 80.
+Rozstęp jest duży i wynosi
+`r round(max(dane$MonthlyCharges) - min(dane$MonthlyCharges), 2)`.
+Można to tłumaczyć dużym zróżnicowaniem pakietów usług: część klientów
+korzysta z prostszych, tańszych ofert, a część z rozbudowanych pakietów
+z internetem światłowodowym, telewizją, dodatkowymi usługami ochrony
+czy wsparcia. Na wykresie gęstości widać też, że rozkład nie jest
+jednomodalny, co sugeruje współistnienie kilku typów ofert cenowych.
 
   \item Jak mozna zinterpretować otrzymaną wartość odchylenia standardowego?
 
-Odchylenie standardowe wynosi `r sd(dane$MonthlyCharges)` i wskazuje że dane są mocno rozrzucone wokół średniej.
+Odchylenie standardowe wynosi `r round(sd(dane$MonthlyCharges), 2)`, czyli około
+połowy średniej (`r round(sd(dane$MonthlyCharges) / mean(dane$MonthlyCharges), 2)` średniej).
+Oznacza to, że miesięczne opłaty są dość silnie zróżnicowane między
+klientami.
 
   \item Co mówią nam otrzymane współczynniki skośności i kurtozy na temat rozkładu?
 
-Zarówno skośność jak i kurtoza są ujemne.
-Wskazuje to na lewostronną asymetrię rozkładu (średnia jest mniejsza od mediany) oraz że intensywność wartości skrajnych jest mniejsza niż w przypadku rozkładu normalnego ("ogony" rozkładu są węższe).
+Skośność jest ujemna (`r round(e1071::skewness(dane$MonthlyCharges), 3)`), co
+potwierdza lekką lewostronną asymetrię. Kurtoza również jest ujemna
+(`r round(e1071::kurtosis(dane$MonthlyCharges), 3)`), co oznacza, że
+rozkład jest bardziej spłaszczony niż rozkład normalny. Na wykresie widać, że
+wartości występują w szerokim zakresie, bez silnej koncentracji przy centrum.
 
 \end{itemize}
 
@@ -334,7 +379,10 @@ boxplot(dane$MonthlyCharges,
         xlab = "Opłata miesięczna")
 ```
 
-A teraz wykresy dla dla zmiennych jakościowych.
+A teraz wykresy dla dla zmiennych jakościowych. Ze względu na dużą liczbę
+cech jakościowych pokazujemy reprezentatywny przykład dla zmiennej
+\texttt{Contract}, natomiast dla pozostałych zmiennych podobną rolę
+pełnią tabele liczności i udziały kategorii.
 
 ```{r, zmienne_jakosciowe, echo=FALSE, fig.cap="Wykres słupkowy i kołowy dla zmiennej Contract", fig.height=5}
 tab_contract <- table(dane$Contract)
@@ -370,6 +418,8 @@ tab_contract_df <- data.frame(
 
 knitr::kable(tab_contract_df,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              caption = "Tabela liczności dla cechy Contract.",
              label = "licz.contract")
 ```
@@ -384,6 +434,8 @@ zmiennymi.**
 tab_korelacje <- round(cor(dane[, vars_ciagle]), 3)
 knitr::kable(tab_korelacje,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              caption = "Macierz korelacji dla zmiennych ciągłych.",
              label = "korelacje")
 ```
@@ -394,6 +446,18 @@ pairs(dane[, vars_ciagle],
       col = rgb(0.2, 0.45, 0.75, 0.25),
       main = "Zależności między zmiennymi ciągłymi")
 ```
+
+Najsilniejsza zależność liniowa występuje między \texttt{tenure} i
+\texttt{TotalCharges} (korelacja `r round(cor(dane$tenure, dane$TotalCharges), 3)`),
+co było oczekiwane, ponieważ całkowite opłaty rosną wraz z czasem
+korzystania z usług. Zależność między \texttt{MonthlyCharges} i
+\texttt{TotalCharges} jest również dodatnia i umiarkowanie silna
+(`r round(cor(dane$MonthlyCharges, dane$TotalCharges), 3)`), co oznacza, że wyższe
+miesięczne rachunki przekładają się zwykle na większe opłaty łączne.
+Natomiast związek \texttt{tenure} z \texttt{MonthlyCharges} jest
+wyraźnie słabszy (`r round(cor(dane$tenure, dane$MonthlyCharges), 3)`), co
+wskazuje, że długość pozostawania klienta w firmie nie determinuje
+bezpośrednio wysokości miesięcznego abonamentu.
 
 ## Podpunkt (d)
 
@@ -464,16 +528,25 @@ powiedzieć o częstości przyjmowania poszczególnych kategorii?
 <!-- round(prop.table(table(dane$TechSupport)) * 100, 1)    -->
 <!-- ```                                                    -->
 
-Rozkłady cech jakościowych są dość nierównomierne. Cechy \texttt{gender} i
-\texttt{Partner} są prawie idealnie zbilansowana, ale już \texttt{Dependents}
-częściej przyjmuje wartość \texttt{No}. Zdecydowana
-większość klientów ma \texttt{PhoneService == Yes}. Najbardziej
-popularnym typem umowy jest \texttt{Month-to-month}, a wśród sposobów
-płatności dominuje \texttt{Electronic check}. W wielu usługach
-dodatkowych (np. \texttt{OnlineSecurity}, \texttt{TechSupport})
-przeważają odpowiedzi \texttt{No} lub \texttt{No internet service}, co
-sugeruje, że spora część klientów korzysta tylko z podstawowego pakietu
-usług.
+Rozkłady cech jakościowych są dość nierównomierne. Cechy
+\texttt{gender} (\texttt{Female}: `r round(100 * prop.table(table(dane$gender))["Female"], 2)`\%)
+i \texttt{Partner} (\texttt{Yes}: `r round(100 * prop.table(table(dane$Partner))["Yes"], 2)`\%)
+są relatywnie zbilansowane, ale już \texttt{Dependents} częściej
+przyjmuje wartość \texttt{No}
+(`r round(100 * prop.table(table(dane$Dependents))["No"], 2)`\%).
+Zdecydowana większość klientów ma \texttt{PhoneService == Yes}
+(`r round(100 * prop.table(table(dane$PhoneService))["Yes"], 2)`\%).
+Najbardziej popularnym typem umowy jest \texttt{Month-to-month}
+(`r round(100 * prop.table(table(dane$Contract))["Month-to-month"], 2)`\%),
+a wśród sposobów płatności dominuje \texttt{Electronic check}
+(`r round(100 * prop.table(table(dane$PaymentMethod))["Electronic check"], 2)`\%).
+W wielu usługach dodatkowych, takich jak \texttt{OnlineSecurity} i
+\texttt{TechSupport}, najczęściej występuje odpowiedź \texttt{No}
+(odpowiednio
+`r round(100 * prop.table(table(dane$OnlineSecurity))["No"], 2)`\% oraz
+`r round(100 * prop.table(table(dane$TechSupport))["No"], 2)`\%),
+co sugeruje, że duża część klientów korzysta z podstawowego pakietu
+usług bez dodatkowych zabezpieczeń i wsparcia.
 
 # Etap 3: Analiza opisowa z podziałem na grupy
 
@@ -521,6 +594,8 @@ cat("\\begin{table}[!h]\\centering\n")
 cat("\\resizebox{\\textwidth}{!}{%\n")
 cat(knitr::kable(tab_churn_num,
                  format = "latex",
+                 booktabs = TRUE,
+                 linesep = "",
                  digits = 2))
 cat("}\n")
 cat("\\caption{Miary opisowe zmiennych ilościowych w grupach Churn.}\n")
@@ -638,6 +713,8 @@ row.names(tab_churn_cat_udzial) <- NULL
 
 knitr::kable(tab_churn_cat_udzial,
              format = "latex",
+             booktabs = TRUE,
+             linesep = "",
              digits = 1,
              caption = "Udział charakterystycznych kategorii wybranych zmiennych jakościowych w grupach Churn = No i Churn = Yes oraz różnica tych udziałów w punktach procentowych.",
              label = "churn.cat.udzial")
@@ -704,11 +781,11 @@ analizę danych?**\newline Jakie są ich główne cechy? \newline Z jakich
 usług korzystają najczęściej?
 
 Klienci firmy są dość zróżnicowani, ale w danych dominuje profil osoby
-korzystającej z usług telefonicznych i internetowych, często z umową
-month-to-month. Z dodatkowych opcji wielu klientów nie korzysta, zwłaszcza
-z usług bezpieczeństwa i wsparcia. Płeć nie wydaje się mieć większego
-znaczenia, natomiast istotniejsze są cechy związane z długością korzystania
-z usług, rodzajem umowy i zakresem pakietu.
+korzystającej z usług telefonicznych i internetowych, co jest spójne z opisem danych
+(branża telco), często z umową month-to-month. Z dodatkowych opcji wielu klientów
+nie korzysta, zwłaszcza z usług bezpieczeństwa i wsparcia. Płeć nie wydaje się
+mieć większego znaczenia, natomiast istotniejsze są cechy związane z długością
+korzystania z usług, rodzajem umowy i zakresem pakietu.
 
 ## Podpunkt (c)
 
@@ -718,12 +795,18 @@ klientów?\newline Innymi słowy, czym charakteryzują się klienci
 rezygnujący z usług firmy?\newline - Co firma powinna zrobić, aby
 przeciwdziałać odchodzeniu klientów?
 
-Główna przyczyna odchodzenia klientów wydaje się związana z
-niekorzystnym połączeniem krótkiego stażu, umowy month-to-month,
-wyższych miesięcznych opłat i braku dodatkowych usług zabezpieczających.
-W praktyce oznacza to, że odchodzą przede wszystkim klienci słabiej
-związani z firmą, płacący relatywnie dużo i niekorzystający z usług
-zwiększających „przywiązanie” do oferty.
+Analiza nie wykazuje jednej dominującej przyczyny rezygnacji,
+ale wskazuje na grupy klientów o podwyższonym ryzyku churnu.
+Najwyższe współczynniki odchodzenia obserwujemy u klientów z umową
+\texttt{Month-to-month} (`r round(100 * prop.table(table(dane$Contract, dane$Churn), 1)["Month-to-month", "Yes"], 2)`\%
+vs `r round(100 * prop.table(table(dane$Contract, dane$Churn), 1)["Two year", "Yes"], 2)`\%
+dla umowy dwuletniej), płacących przez \texttt{Electronic check}
+(`r round(100 * prop.table(table(dane$PaymentMethod, dane$Churn), 1)["Electronic check", "Yes"], 2)`\%),
+niekorzystających z \texttt{OnlineSecurity}
+(`r round(100 * prop.table(table(dane$OnlineSecurity, dane$Churn), 1)["No", "Yes"], 2)`\%)
+oraz \texttt{TechSupport}
+(`r round(100 * prop.table(table(dane$TechSupport, dane$Churn), 1)["No", "Yes"], 2)`\%).
+Rezygnujący klienci często krócej są związani z firmą i mają wyższe miesięczne opłaty.
 
 Aby przeciwdziałać churnowi, firma powinna:
 
