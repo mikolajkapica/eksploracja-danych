@@ -378,7 +378,7 @@ boxplot(dane$MonthlyCharges,
         main = "MonthlyCharges",
         xlab = "Opłata miesięczna")
 ```
-Powyższe zestawienie (Rysunek \ref{fig:zmienne_ilosciowe}) prezentuje rozkład miesięcznych opłat ponoszonych przez klientów. Z histogramu (po lewej) wynika, że najliczniejszą grupę stanowią klienci płacący najniższe rachunki (około 20 dolarów). Wykres pudełkowy (po prawej) potwierdza te obserwacje, ukazując medianę na poziomie około 70 dolarów oraz brak występowania wartości ekstremalnych (odstających).
+Powyższe zestawienie (Rysunek \ref{fig:zmienne_ilosciowe}) prezentuje rozkład miesięcznych opłat ponoszonych przez klientów. Z histogramu (po lewej) wynika, że najliczniejszą grupę stanowią klienci płacący najniższe rachunki (około 20 dolarów), ale widoczne jest również szerokie skupisko klientów z drogimi pakietami. Z kolei wykres pudełkowy (po prawej) uzupełnia te obserwacje, ponieważ ukazuje medianę na poziomie około 70 dolarów, bardzo szeroki box świadczy o dużym zróżnicowaniu opłat oraz o braku występowania wartości wyjątkowo odstających.
 
 
 ```{r etap_2_b_tenure, echo=FALSE, fig.cap="Rozkład stażu klientów w miesiącach.", out.width="100%"}
@@ -386,7 +386,7 @@ hist(dane$tenure, main = "Rozkład stażu klientów (tenure)",
      xlab = "Liczba miesięcy", ylab = "Liczebność", 
      col = "lightgreen", breaks = 20)
 ```
-Histogram (Rysunek \ref{fig:etap_2_b_tenure}) prezentuje rozkład czasu (stażu), przez jaki klienci korzystają z usług firmy. Możemy zaobserwować wyraźne zjawisko dwumodalności. Występuje bardzo duża grupa nowych klientów (staż bliski 0 miesięcy) oraz druga, liczna grupa bardzo lojalnych klientów o maksymalnym stażu (ponad 70 miesięcy).
+Histogram (Rysunek \ref{fig:etap_2_b_tenure}) prezentuje rozkład czasu (stażu), przez jaki klienci korzystają z usług firmy. Możemy zaobserwować, że występuje bardzo duża grupa nowych klientów (staż bliski 0 miesięcy), a pozostałe grupy (dłużsi klienci) mają liczebność na podobnym poziomie.
 
 ```{r etap_2_b_total_charges, echo=FALSE, fig.cap="Rozkład całkowitych opłat klientów.", out.width="100%"}
 hist(dane$TotalCharges, main = "Rozkład całkowitych opłat (TotalCharges)", 
