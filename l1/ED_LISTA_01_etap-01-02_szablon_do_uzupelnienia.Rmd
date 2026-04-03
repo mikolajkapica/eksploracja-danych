@@ -59,7 +59,7 @@ dane <- dane_raw
 dane$customerID <- NULL
 # Uzasadnienie zerowania wartości `TotalCharges` dla brakujących
 # obserwacji znajduje się w podpunkcie 1b)
-dane[is.na(dane$TotalCharges), "TotalCharges"] <- 0
+dane$TotalCharges[is.na(dane$TotalCharges)] <- 0
 dane[] <- lapply(dane, function(x) if (is.character(x)) factor(x) else x)
 # Zamiana zmiennej SeniorCitizen z 0/1 na FALSE/TRUE
 dane$SeniorCitizen <- as.logical(dane$SeniorCitizen)
