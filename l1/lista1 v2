@@ -386,7 +386,7 @@ hist(dane$tenure, main = "Rozkład stażu klientów (tenure)",
      xlab = "Liczba miesięcy", ylab = "Liczebność", 
      col = "lightgreen", breaks = 20)
 ```
-Histogram (Rysunek \ref{fig:etap_2_b_tenure}) prezentuje rozkład czasu (stażu), przez jaki klienci korzystają z usług firmy. Możemy zaobserwować, że występuje bardzo duża grupa nowych klientów (staż bliski 0 miesięcy), a pozostałe grupy (dłużsi klienci) mają liczebność na podobnym poziomie.
+Histogram (Rysunek \ref{fig:etap_2_b_tenure}) prezentuje rozkład czasu (stażu), przez jaki klienci korzystają z usług firmy. Możemy zaobserwować, że występuje bardzo duża grupa nowych klientów (staż bliski 0 miesięcy), a pozostałe grupy (stali klienci) mają liczebność na podobnym poziomie.
 
 ```{r etap_2_b_total_charges, echo=FALSE, fig.cap="Rozkład całkowitych opłat klientów.", out.width="100%"}
 hist(dane$TotalCharges, main = "Rozkład całkowitych opłat (TotalCharges)", 
