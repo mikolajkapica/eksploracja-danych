@@ -471,7 +471,6 @@ fviz_pca_biplot(dane.pca, label = "var", col.ind = UA_Continent, addEllipses = T
 
 # macierz korelacji cech wejściowych
 correlations <- cor(dane.2.num, use = "complete.obs")
-round(correlations, 2)
 corrplot(correlations, method = "color", type = "upper", tl.cex = 0.7)
 
 ```
