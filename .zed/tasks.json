@@ -1,8 +1,13 @@
 // Project tasks configuration. See https://zed.dev/docs/tasks for documentation.
 [
   {
-    "label": "Compile Rmd to PDF",
+    "label": "Compile l1 Rmd to PDF",
     "cwd": "${ZED_WORKTREE_ROOT}/l1",
-    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_01_etap-01-02_szablon_do_uzupelnienia.Rmd', output_format=rmarkdown::pdf_document())\"",
+    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_01_etap-01-02_szablon_do_uzupelnienia.Rmd')\"",
+  },
+  {
+    "label": "Compile l2 Rmd to PDF",
+    "cwd": "${ZED_WORKTREE_ROOT}/l2",
+    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_02_zadanie_01_02_03_szablon_do_uzupelnienia.Rmd')\"",
   },
 ]
