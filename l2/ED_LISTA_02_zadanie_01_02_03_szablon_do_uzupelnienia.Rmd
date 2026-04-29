@@ -1,0 +1,523 @@
+---
+title: "Sprawozdanie z listy 2"
+subtitle: "Eksploracja danych"
+author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    fig_caption: yes
+    fig_width: 6.5 
+    fig_height: 5 
+    number_sections: true
+header-includes:
+   - \usepackage[OT4]{polski}
+   - \usepackage[utf8]{inputenc}
+   - \usepackage{graphicx}
+   - \usepackage{float}
+fontsize: 12pt 
+---
+
+    
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
+    
+library(xtable) # do tworzenia tabel texowych w pdf
+library(arules) # zawiera funkcję discretize() do zadania 1
+library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
+```
+    
+    
+# Zadanie 1: Dyskretyzacja (przedziałowanie) cech ciągłych.
+    
+## Podpunkt (a): Dane: iris (R-pakiet datasets).
+<!--
+- Zbiór danych zawiera wyniki pomiarów uzyskanych dla trzech gatunków irysów 
+  (tj. setosa, versicolor i virginica) i został udostępniony przez 
+  Ronalda Fishera w roku 1936.
+- Pomiary dotyczą długości oraz szerokości dwóch różnych części kwiatu 
+  i działki kielicha (ang. sepal) oraz płatka (ang. petal).
+-->
+
+Wczytujemy dane *iris*z pakietu *datasets*.
+    
+```{r wczytanie danych}
+# wczytanie danych iris 
+dane <- data(iris)
+```
+    
+Należy również krótko przedstawić te dane. 
+W tym celu można m.in. uwzględnić odpowiedzi na następujace pytania:
+
+\begin{itemize}
+\item Skąd pochodzą te dane? Kto jest ich autorem? Co zawierają?
+\item Ile jest obserwacji w tym zbiorze danych?
+\item Ile jest cech? Jakiego są typu? Co opisują?
+\item Czy zbiór danych jest zbalansowany?
+\item Czy są braki w danych? Czy są duplikaty?
+\item Czy coś szczególnego widać np. w uporządkowaniu tych danych?
+\end{itemize}
+
+
+
+## Podpunkt (b): wybór cech
+<!-- 
+     Wykorzystując wybrane narzędzia analizy opisowej, przeanalizuj krótko 
+     własności poszczególnych cech i wybierz: jedną cechę o najlepszej 
+     i jedną o najgorszej zdolności dyskryminacyjnej (tzn. zdolności do 
+     separacji klas/gatunków).
+-->
+
+Sprawdzamy (dodaj odnośnik) wykresy rozrzutu cech ilościowych względem 
+cechy jakościowej *Species*.
+
+```{r}
+y <- runif(150)
+par(mfrow=c(2,2))
+plot(iris$Sepal.Length,y, col=iris$Species, pch=15)
+plot(iris$Sepal.Width,y, col=iris$Species, pch=15)
+plot(iris$Petal.Length,y, col=iris$Species, pch=15)
+plot(iris$Petal.Width,y, col=iris$Species, pch=15)
+par(mfrow=c(1,1))
+```
+
+Zobaczmy (dodaj odnośnik) również analogiczne wykresy pudełkowe.
+
+```{r wykresy-rozrzutu}
+par(mfrow=c(2,2))
+plot(iris$Sepal.Length ~ iris$Species, col=rainbow(3))
+plot(iris$Sepal.Width ~ iris$Species, col=rainbow(3))
+plot(iris$Petal.Length ~ iris$Species, col=rainbow(3))
+plot(iris$Petal.Width ~ iris$Species, col=rainbow(3))
+par(mfrow=c(1,1))
+```
+Wniosek: ...
+
+## Podpunkt (c): porównanie nienadzorowanych metod dyskretyzacji
+<!--
+    Dla wybranych w punkcie b) cech zastosuj i porównaj wyniki uzyskane 
+    dla różnych metod dyskretyzacji nienadzorowanej (ang. unsupervised 
+    discretization), przyjmując, że liczba kategorii jest równa liczbie klas 
+    (tzn. K = 3). 
+    
+    W porównaniach uwzględnij algorytmy: 
+    - equal width, 
+    - equal frequency, 
+    - k-means clustering 
+    - oraz dyskretyzację na bazie przedziałów zadanych przez użytkownika.
+    
+(Wskazówka: można wykorzystać funkcję discretize() z R-pakietu arules).
+Wykorzystując porównanie z rzeczywistymi etykietkami klas (zmienna Species),
+postaraj się rozstrzygnąć, który algorytm dyskretyzacji okazał się najbardziej 
+skuteczny. Czy wyniki otrzymane dla najlepszej cechy różnią się istotnie 
+od wyników dla najgorszej cechy?
+-->
+
+Docelowa liczba przedziałów to $K=3$. Wykorzystamy funkcję *discretize()* 
+z pakietu \texttt{arules}.
+
+### Metoda (domyślna) oparta na równych częstościach (ang. equal frequency)      
+
+Można oprzeć się na rozdziale 3.1 z pliku *dyskretyzacja\_porownanie\_metod.html*.
+
+Mianowicie, warto umieścić w omówieniu:
+\begin{itemize}
+\item rysunki analogiczne do rys. 4 oraz rys. 5 (mogą być obok siebie, 
+z wykorzystaniem ustawień \texttt{par(mfrow=c(1,2)))}
+\item rysunek analogiczny do rys. 6 (albo dać samą tabelę kontyngencji)
+\end{itemize}
+Oczywiście należy krótko (wystarczą zapewne 2-3 zdania) opisać co
+przedstawiają te rysunki.
+
+### Dyskretyzacja oparta na przedziałach o jednakowej szerokości (ang. equal interval width)
+
+Można oprzeć się na rozdziale 3.2 z pliku *dyskretyzacja_porownanie_metod.html*
+i postępować jak w powyższym opisie.
+
+### Dyskretyzacja oparta na algorytmie grupowania (ang. k-means discretization)
+
+Można oprzeć się na rozdziale 3.3 z pliku *dyskretyzacja_porownanie_metod.html*
+i postępować jak w powyższym opisie.
+
+### Dyskretyzacja z przedziałami zadanymi przez użytkownika
+
+Można oprzeć się na rozdziale 3.4 z pliku *dyskretyzacja_porownanie_metod.html*
+i postępować jak w powyższym opisie.
+
+### Podsumowanie
+
+Zbierz i krótko opisz uzyskane wyniki. W tym celu 
+\begin{itemize}
+\item wyznacz współczynniki zgodności za pomocą funkcji *compareMatchedClasses()*
+z pakietu \texttt{arules}, tak jak zostało to opisane na koniec rozdziału 3.1 
+w pliku *dyskretyzacja\_porownanie\_metod.html*,
+\item postaraj się rozstrzygnąć, który algorytm dyskretyzacji okazał się najbardziej skuteczny, biorąc pod uwagę wykonane wcześniej rysunki oraz 
+otrzymane współczynnik zgodności,
+\item oceń, czy wyniki otrzymane dla najlepszej cechy różnią się istotnie 
+od wyników dla najgorszej cechy.
+\end{itemize}
+
+
+
+# Zadanie 2: Analiza składowych głównych (Principal Component Analysis (PCA))
+    
+## Dane: City Quality of Life Dataset (plik uaScoresDataFrame.csv, zródlo: Kaggle/Teleport.org)
+
+<!--
+Zbiór danych zawiera wskaźniki opisujące jakość życia w wybranych miastach, 
+w tym m.in. takie charakterystyki jak: warunki mieszkaniowe, koszty utrzymania, 
+bezpieczeństwo, opieka zdrowotna, edukacja itp.
+
+Wszystkie cechy ilościowe przyjmują wartości w zakresie 0-10 (większa wartość 
+oznacza lepszy wynik).
+
+Dodatkowo mamy informację nt. lokalizacji danego miasta (zmienne UA_Continent 
+i UA_Country).
+-->
+
+
+
+## podpunkt a : dane
+
+
+Rozpoczynamy od wczytania danych  pliku csv.
+
+```{r, wczytanie_danych }
+# wczytanie danych z pliku csv
+#dane.2 <- 
+
+# podgląd danych
+#head(dane.2)
+
+# usuwamy pierwszą kolumne, bo pełni rolę identyfikatora
+#dane.2 <- dane.2[,-1]
+
+# dołączanie zmiennych
+#attach(dane.2)
+```
+
+Do zrobienia:
+- opisać zbiór danych (liczba zmiennych, liczba obserwacji, typy zmiennych 
+                       i ich zakres)
+- krótko opisać poszczególne zmienne (jak w spraozdaniu do listy 1)
+
+
+
+
+
+## podpunkt b: Przygotowanie danych
+<!--
+Wczytaj dane do przestrzeni roboczej R'a i zapoznaj się z ich podstawowymi 
+własnościami. Następnie wybierz podzbiór zawierający wyłącznie cechy ilościowe.
+Porównaj zmienność (wariancję) poszczególnych cech i spróbuj rozstrzygnąć czy
+konieczne jest zastosowanie standaryzacji 
+(Wskazówka: można w tym celu wykorzysta¢ np. wykresy pudełkowe).
+
+-->
+
+
+Wybieramy do analizy wyłącznie cechy ilościowe.
+```{r}
+# wybór danych zawierających wyłącznie cechy ilościowe
+#ilosciowe <- which(sapply(dane.2, is.numeric))
+#dane.2.num <- dane.2[,ilosciowe]
+```
+
+
+
+
+Wyznaczamy wariancje poszczególnych cech. 
+```{r}
+# wariancje poszczególnych cech
+
+```
+
+
+Sprawdzamy również konieczność standaryzacji danych na podstawie wykresów pudełkowych.
+```{r}
+# wykresy pudełkowe przed standaryzacją
+
+
+# wykresy pudełkowe po standaryzacji
+
+```
+
+## podpunkt c: Wyznaczenie składowych gównych
+<!--
+Wyznacz składowe główne i porównaj ich rozrzut wykorzystując wykresy pudełkowe.
+
+Wskazówka: do wyznaczenia składowych można wykorzystać funkcję prcomp() 
+           lub princomp(). 
+
+Analizując wektory ładunków (loadings) dla kilku pierwszych składowych 
+(np. PC1, PC2 i PC3), sprawdź, które zmienne mają największy wkład 
+(największe wagi). Spróbuj zinterpretować otrzymane składowe.
+-->
+
+
+
+```{r}
+# Wyznaczanie składowych głównych
+#dane.pca <- 
+
+# porównanie rozrzutu składowych głównych za pomocą wykresów pudełkowych
+
+
+```
+
+
+Analizujemy wektory ładunków dla kilku pierwszych składowych głównych.
+```{r}
+# wektory ładunków (loadings) dla PC1, PC2, PC3
+
+
+# PC1
+
+
+# PC2
+
+
+# PC3
+
+```
+
+
+
+
+## podpunkt d: Zmienność odpowiadająca poszczególnym składowym
+
+<!--
+Zbadaj, jaki procent wyjaśnionej wariancji (zmienności) odpowiada poszczególnym 
+składowym głównym. W szczególno±ci, odpowiedz na pytanie, ile składowych 
+głównych jest potrzebnych do wyjaśnienia: 
+
+a) 80% lub 
+b) 90% 
+
+całkowitej zmienności danych.
+
+-->
+
+```{r}
+# wariancje odpowiadające poszczególnym składowym głównym
+
+
+# wariancje
+
+
+# frakcje wariancji
+#variances <- 
+
+# skumulowane wariancje
+#cumulative.variances <- 
+```
+
+
+```{r}
+# wykres słupkowy skumulowanej wariancji z naniesionymi poziomem 80%
+
+
+```
+
+
+
+## podpunkt e: Wizualizacja danych wielowymiarowych
+```{r, fig.width=10, fig.height=6}
+# Kolory (mamy 6 etykiet kontynentów)
+# length(unique(UA_Country))# jest 135 państw
+# length(unique(UA_Continent))# jest 6 kontynentów
+# kolory <- rainbow(6)
+
+# wykres w przestrzeni (PC1,PC2)
+# plot(dane.pca$x[,1], dane.pca$x[,2], pch=16,
+#      col = kolory[as.numeric(UA_Continent)])
+
+# Nanosimy tekst z nazwami miast
+#text(dane.pca$x[,1], dane.pca$x[,2]+0.2,labels = UA_Name, cex=0.3)
+
+# dodajemy legendę względem nazw kontynentów
+#legend("bottomright",legend = levels(UA_Continent), pch=16, cex=0.7, col=kolory)
+```
+
+
+
+
+
+## podpunkt f: Korelacja zmiennych
+<!-- 
+Wykorzystując dwuwykres (ang. biplot), zbadaj czy występuje istotna korelacja 
+między poszczególnymi zmiennymi. Wnioski otrzymane na podstawie analizy 
+dwuwykresu porównaj z wnioskami opartymi na macierzy korelacji (funkcja cor()). 
+-->
+
+```{r}
+# dwuwykres (biplot) przy pomocy pakietu factoextra
+library(factoextra)
+library(corrplot)
+
+# domyślne parametry
+#fviz_pca_biplot(dane.pca)
+
+# usuwamy nazwy przypadków
+#fviz_pca_biplot(dane.pca, label="var")
+
+# dodajemy kolory odpowiadające ustalonym grupom/klasom
+#fviz_pca_biplot(dane.pca, label="var", col.ind = UA_Continent)
+
+# dodajemy elipsy koncentracji
+#fviz_pca_biplot(dane.pca, label="var", col.ind = UA_Continent, addEllipses = TRUE)
+
+```
+
+
+
+
+
+
+## podpunkt g: Końcowe wnioski
+<!-- Krótko podsumuj wyniki analiz z poprzednich punktów. 
+
+Co ciekawego udało się zaobserwować? 
+
+Ile składowych potrzebujemy aby otrzymać zadowalającą reprezentację danych? 
+
+Czy (nie)zastosowanie standaryzacji miało istotny wpływ na otrzymane wyniki 
+i wnioski? 
+-->
+
+Do samodzielnego wykonania.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Zadanie 3: Skalowanie wielowymiarowe (Multidimensional Scaling (MDS))
+    
+## Dane: titanic_train (R-pakiet titanic)
+<!--
+- Zbiór danych zawiera wybrane charakterystyki opisujące pasażerów Titanica 
+  (w tym m.in. takie zmienne jak: wiek, płeć, miejsce rozpoczęcia podróży 
+  czy klasa pasażerska) wraz z informacją czy dana osoba przeżyła katastrofę 
+  (zmienna Survived).
+  
+- Dokładniejszy opis danych: https://www.kaggle.com/c/titanic/data
+
+-->
+
+
+## podpunkt a : dane
+
+Do zrobienia:
+- opisać zbiór danych (liczba zmiennych, liczba obserwacji, typy zmiennych 
+                       i ich zakres/liczba poziomów)
+- krótko opisać poszczególne zmienne (jak w sprawozdaniu do listy 1)
+
+
+## podpunkt b : Przygotowanie danych
+<!--
+Zapoznaj się z opisem danych i wczytaj je do przestrzeni roboczej R. 
+Sprawdź czy wszystkie typy zmiennych zostały poprawnie przypisane i w razie 
+potrzeby wykonaj odpowiednią konwersję
+
+(Wskazówka: w tym celu można wykorzystać funkcje as.factor(), as.ordered() itp.).
+Następnie usuń z danych zmienne pełniące rolę identyfikatorów pasażerów 
+(takie jak PassengerId, Name, Ticket i Cabin). 
+
+Sprawdź również, czy w danych występują brakujące wartości.
+
+Uwaga: kolumnę Survived traktujemy jako zmienną grupującą i nie będziemy jej 
+       wykorzystywali do przeprowadzenia redukcji wymiaru, a jedynie na etapie 
+       interpretacji wyników.
+
+
+-->
+
+```{r}
+# opcjonalna instalacja pakietu, jeśli go nie mamy
+#install.packages("titanic")
+
+# dołączenie pakietu titanic
+
+
+# wczytanie danych titanic_train z tego pakietu
+
+
+# konwersje typów cech
+
+
+# Usuwamy niepotrzebne zmienne
+
+
+# czy w danych występują brakujące wartości?
+
+```
+
+
+
+
+## podpunkt c : Redukcja wymiaru na bazie MDS
+<!--
+Dla przygotowanych w punkcie b) danych wyznacz (z pominięciem zmiennej Survived)
+macierz odmienności (ang. dissimilarity matrix) i zastosuj wybrany wariant 
+skalowania wielowymiarowego (tj. skalowanie metryczne lub niemetryczne). 
+
+Jako wymiar docelowej przestrzeni przyjmij d = 2 lub 3. 
+
+Zbadaj jakość otrzymanego odwzorowania, wykorzystując w tym celu 
+diagram Sheparda.
+
+-->
+
+Można wykorzystać infomracje zawarte w materiałach ze strony wykłądu na ePortalu
+
+- ocena_jakosci_MDS.R
+- MDS_odwzorowanie_mapy_Europy.R
+
+
+
+## podpunkt d : Wizualizacja danych
+<!--
+Konstruując odpowiednie wykresy rozrzutu (2D lub 3D), przedstaw graficznie 
+wyniki redukcji wymiaru. Wykorzystując różne kolory, zaznacz przynależność
+poszczególnych jednostek do grup odpowiadających wartościom zmiennej Survived 
+(tj. Survived==0 i Survived==1). 
+
+Zinterpretuj otrzymane wyniki. 
+
+Czy widoczny jest podział obiektów na grupy (skupiska)? 
+
+Czy i w jakim stopniu jest on zgodny z informacją dot. przeżycia katastrofy?
+
+Czy na wykresie widoczne są obserwacje nietypowe (odstające)?
+
+Skonstruuj również analogiczne wykresy rozrzutu (2D lub 3D), zaznaczając 
+tym razem różnymi kolorami (lub symbolami) wartości (poziomy) zmiennej Sex 
+oraz Pclass. 
+
+Czy w tym przypadku widoczne na wykresie grupy (skupiska) są powiązane 
+z wartościami tych zmiennych?
+
+-->
+
+Można wykorzystać infomracje zawarte w materiałach ze strony wykłądu na ePortalu
+
+- ocena_jakosci_MDS.R
+- MDS_odwzorowanie_mapy_Europy.R
+
+
+
+
+
+
+  
