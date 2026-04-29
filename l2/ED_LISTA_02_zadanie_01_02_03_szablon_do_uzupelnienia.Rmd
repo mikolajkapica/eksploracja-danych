@@ -185,23 +185,60 @@ i UA_Country).
 Rozpoczynamy od wczytania danych  pliku csv.
 
 ```{r, wczytanie_danych }
-# wczytanie danych z pliku csv
-#dane.2 <- 
+# wczytanie surowych danych z pliku csv
+dane.2.raw <- read.csv("uaScoresDataFrame.csv",
+                       stringsAsFactors = FALSE,
+                       check.names = FALSE,
+                       na.strings = c("", " ", "NA"))
 
-# podgląd danych
-#head(dane.2)
+# podgląd surowych danych
+head(dane.2.raw)
+str(dane.2.raw)
+
+# kopiowanie danych do obiektu roboczego
+dane.2 <- dane.2.raw
 
 # usuwamy pierwszą kolumne, bo pełni rolę identyfikatora
-#dane.2 <- dane.2[,-1]
+dane.2 <- dane.2[,-1]
+
+# konwersja zmiennych jakościowych na typ factor
+dane.2$UA_Country <- as.factor(dane.2$UA_Country)
+dane.2$UA_Continent <- as.factor(dane.2$UA_Continent)
 
 # dołączanie zmiennych
-#attach(dane.2)
+attach(dane.2)
 ```
 
-Do zrobienia:
-- opisać zbiór danych (liczba zmiennych, liczba obserwacji, typy zmiennych 
-                       i ich zakres)
-- krótko opisać poszczególne zmienne (jak w spraozdaniu do listy 1)
+Zbiór danych "City Quality of Life Dataset" zawiera wyliczone wskaźniki różnych kategorii dla obszarów miejskich, zagregowane z wielu źródeł danych, przez nieistniejącą już organizację "Teleport". Plik `csv` zawiera `r ncol(dane.2)` zmiennych i `r nrow(dane.2)` obserwacji.
+
+Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
+
+\begin{itemize}
+\item \textbf{UA\_Name} (character) - nazwa miasta
+\item \textbf{UA\_Country} (factor; liczba poziomów: `r length(levels(dane.2$UA_Country))`) - kraj lub region, w którym znajduje się miasto
+\item \textbf{UA\_Continent} (factor; poziomy: `r paste(levels(dane.2$UA_Continent), collapse = ", ")`) - kontynent, na którym położone jest miasto
+\item \textbf{Housing} (numeryczny; zakres: `r min(dane.2$Housing)`-`r max(dane.2$Housing)`) - wskaźnik dostępności mieszkań i czynszów
+\item \textbf{Cost of Living} (numeryczny; zakres: `r min(dane.2[,"Cost of Living"])`-`r max(dane.2[,"Cost of Living"])`) - wskaźnik przystępności cenowej dóbr i usług (żywność, transport, rozrywka)
+\item \textbf{Startups} (numeryczny; zakres: `r min(dane.2$Startups)`-`r max(dane.2$Startups)`) - wskaźnik rozwoju ekosystemu startupowego (liczba firm, eventy, meetupy, przestrzenie coworkingowe)
+\item \textbf{Venture Capital} (numeryczny; zakres: `r min(dane.2[,"Venture Capital"])`-`r max(dane.2[,"Venture Capital"])`) - wskaźnik dostępności kapitału venture i akceleratorów
+\item \textbf{Travel Connectivity} (numeryczny; zakres: `r min(dane.2[,"Travel Connectivity"])`-`r max(dane.2[,"Travel Connectivity"])`) - wskaźnik łączności transportowej (dostępność połączeń lotniczych i kolejowych)
+\item \textbf{Commute} (numeryczny; zakres: `r min(dane.2$Commute)`-`r max(dane.2$Commute)`) - wskaźnik płynności ruchu miejskiego i obsługi ruchu drogowego
+\item \textbf{Business Freedom} (numeryczny; zakres: `r min(dane.2[,"Business Freedom"])`-`r max(dane.2[,"Business Freedom"])`) - wskaźnik wolności prowadzenia działalności gospodarczej (brak korupcji, ograniczenia pracownicze, czas rejestracji firmy)
+\item \textbf{Safety} (numeryczny; zakres: `r min(dane.2$Safety)`-`r max(dane.2$Safety)`) - wskaźnik bezpieczeństwa (poziom przestępczości, dostępność broni i zagrożenia z nią związane)
+\item \textbf{Healthcare} (numeryczny; zakres: `r min(dane.2$Healthcare)`-`r max(dane.2$Healthcare)`) - wskaźnik jakości opieki zdrowotnej (oczekiwana długość życia, jakość świadczeń)
+\item \textbf{Education} (numeryczny; zakres: `r min(dane.2$Education)`-`r max(dane.2$Education)`) - wskaźnik jakości edukacji (wyniki PISA, ranking uczelni)
+\item \textbf{Environmental Quality} (numeryczny; zakres: `r min(dane.2[,"Environmental Quality"])`-`r max(dane.2[,"Environmental Quality"])`) - wskaźnik jakości środowiska (jakość powietrza, czystość, jakość wody pitnej, zieleń miejska)
+\item \textbf{Economy} (numeryczny; zakres: `r min(dane.2$Economy)`-`r max(dane.2$Economy)`) - wskaźnik kondycji gospodarki (PKB per capita, dynamika wzrostu)
+\item \textbf{Taxation} (numeryczny; zakres: `r min(dane.2$Taxation)`-`r max(dane.2$Taxation)`) - wskaźnik obciążenia podatkowego i biurokracji
+\item \textbf{Internet Access} (numeryczny; zakres: `r min(dane.2[,"Internet Access"])`-`r max(dane.2[,"Internet Access"])`) - wskaźnik jakości dostępu do internetu (prędkość pobierania i wysyłania danych)
+\item \textbf{Leisure \& Culture} (numeryczny; zakres: `r min(dane.2[,"Leisure & Culture"])`-`r max(dane.2[,"Leisure & Culture"])`) - wskaźnik dostępności rozrywki i kultury (galerie, kina, muzea, koncerty, sport)
+\item \textbf{Tolerance} (numeryczny; zakres: `r min(dane.2$Tolerance)`-`r max(dane.2$Tolerance)`) - wskaźnik równości praw mniejszości (w tym praw LGBT) oraz tolerancji wobec mniejszości
+\item \textbf{Outdoors} (numeryczny; zakres: `r min(dane.2$Outdoors)`-`r max(dane.2$Outdoors)`) - wskaźnik możliwości aktywności na świeżym powietrzu (ukształtowanie terenu, dostęp do wody i morza)
+\end{itemize}
+
+Cechy numeryczne przyjmują wartości w teoretycznej skali 0--10, przy czym wyższa wartość oznacza lepszy wynik w danej kategorii.
+
+Szczegółowe opisy składowych poszczególnych kategorii (pod-wskaźniki) można znaleźć w archiwalnej dokumentacji API Teleport: \url{https://web.archive.org/web/20200806082539/http://developers.teleport.org/api/resources/UrbanAreaDetails/}.
 
 
 
