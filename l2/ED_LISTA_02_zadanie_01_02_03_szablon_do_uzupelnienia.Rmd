@@ -1,21 +1,24 @@
 ---
 title: "Sprawozdanie z listy 2"
-subtitle: "Eksploracja danych"
 author: "Imię i nazwisko autora(ki) raportu,   album 123456"
 date: "`r Sys.Date()`"
-output: 
+output:
+  html_document:
+    toc: true
+    df_print: paged
   pdf_document:
     toc: true
-    fig_caption: yes
-    fig_width: 6.5 
-    fig_height: 5 
+    fig_caption: true
+    fig_width: 6.5
+    fig_height: 5
     number_sections: true
+subtitle: Eksploracja danych
 header-includes:
-   - \usepackage[OT4]{polski}
-   - \usepackage[utf8]{inputenc}
-   - \usepackage{graphicx}
-   - \usepackage{float}
-fontsize: 12pt 
+- \usepackage[OT4]{polski}
+- \usepackage[utf8]{inputenc}
+- \usepackage{graphicx}
+- \usepackage{float}
+fontsize: 12pt
 ---
 
     
@@ -33,13 +36,7 @@ library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
 # Zadanie 1: Dyskretyzacja (przedziałowanie) cech ciągłych.
     
 ## Podpunkt (a): Dane: iris (R-pakiet datasets).
-<!--
-- Zbiór danych zawiera wyniki pomiarów uzyskanych dla trzech gatunków irysów 
-  (tj. setosa, versicolor i virginica) i został udostępniony przez 
-  Ronalda Fishera w roku 1936.
-- Pomiary dotyczą długości oraz szerokości dwóch różnych części kwiatu 
-  i działki kielicha (ang. sepal) oraz płatka (ang. petal).
--->
+
 
 Wczytujemy dane *iris*z pakietu *datasets*.
     
@@ -48,32 +45,49 @@ Wczytujemy dane *iris*z pakietu *datasets*.
 dane <- data(iris)
 ```
     
-Należy również krótko przedstawić te dane. 
-W tym celu można m.in. uwzględnić odpowiedzi na następujace pytania:
+### Przedstawmy dane z pakietu Irirs odpowiadając na następujace pytania:
 
-\begin{itemize}
-\item Skąd pochodzą te dane? Kto jest ich autorem? Co zawierają?
-\item Ile jest obserwacji w tym zbiorze danych?
-\item Ile jest cech? Jakiego są typu? Co opisują?
-\item Czy zbiór danych jest zbalansowany?
-\item Czy są braki w danych? Czy są duplikaty?
-\item Czy coś szczególnego widać np. w uporządkowaniu tych danych?
-\end{itemize}
 
+* Skąd pochodzą te dane? Kto jest ich autorem? Co zawierają?
+
+-Zbiór danych zawiera wyniki pomiarów uzyskanych dla trzech gatunków irysów 
+  (tj. setosa, versicolor i virginica) i został udostępniony przez 
+  Ronalda Fishera w roku 1936.  
+-Pomiary dotyczą długości oraz szerokości dwóch różnych części kwiatu 
+  i działki kielicha (ang. sepal) oraz płatka (ang. petal).  
+  
+* Ile jest obserwacji w tym zbiorze danych?
+
+-Obserwacji jest `r nrow(iris)`
+
+* Ile jest cech? Jakiego są typu? Co opisują?
+
+-Cech jest`r ncol(iris)` są one typu numerycznego i jakościowego i opisują wymiary kwiatów i ich gatunek.
+
+* Czy zbiór danych jest zbalansowany?
+
+`r table(iris$Species)` Tak zbiór jest zbalansowany
+
+* Czy są braki w danych? Czy są duplikaty?
+
+-Na: `r sum(is.na(iris))`    
+-0: `r sum(iris[,1:4]==0 , na.rm=TRUE)`  
+Nie ma braków ani wartości równych zero  
+
+-Duplikat jest w wierszu: `r which(duplicated(iris))`  i w wierszu 102
+
+* Czy coś szczególnego widać np. w uporządkowaniu tych danych?
+
+-Tak widzimy, że mamy po 50 gatunków kwiatów: `r table(iris$Species)`
 
 
 ## Podpunkt (b): wybór cech
-<!-- 
-     Wykorzystując wybrane narzędzia analizy opisowej, przeanalizuj krótko 
-     własności poszczególnych cech i wybierz: jedną cechę o najlepszej 
-     i jedną o najgorszej zdolności dyskryminacyjnej (tzn. zdolności do 
-     separacji klas/gatunków).
--->
 
-Sprawdzamy (dodaj odnośnik) wykresy rozrzutu cech ilościowych względem 
+
+Sprawdzamy (zob. rys. \ref{fig:wykres-rozrzutu}) wykresy rozrzutu cech ilościowych względem 
 cechy jakościowej *Species*.
 
-```{r}
+```{r wykres-rozrzutu, fig.cap="Wykresy rozrzutu cech ilościowych względem gatunków."}
 y <- runif(150)
 par(mfrow=c(2,2))
 plot(iris$Sepal.Length,y, col=iris$Species, pch=15)
@@ -83,9 +97,9 @@ plot(iris$Petal.Width,y, col=iris$Species, pch=15)
 par(mfrow=c(1,1))
 ```
 
-Zobaczmy (dodaj odnośnik) również analogiczne wykresy pudełkowe.
+Zobaczmy (zob. rys. \ref{fig:wykresy-pudelkowe}) również analogiczne wykresy pudełkowe.
 
-```{r wykresy-rozrzutu}
+```{r wykresy-pudelkowe, fig.cap="Wykresy pudełkowe cech ilościowych względem gatunków."}
 par(mfrow=c(2,2))
 plot(iris$Sepal.Length ~ iris$Species, col=rainbow(3))
 plot(iris$Sepal.Width ~ iris$Species, col=rainbow(3))
@@ -93,71 +107,240 @@ plot(iris$Petal.Length ~ iris$Species, col=rainbow(3))
 plot(iris$Petal.Width ~ iris$Species, col=rainbow(3))
 par(mfrow=c(1,1))
 ```
-Wniosek: ...
+Wniosek:   
+* Cechą o najlepszej zdolności dyskryminacji jest Petal.Width     
+* Cechą o najgorszej zdolności dyskryminacji jest Sepal.Width   
+
 
 ## Podpunkt (c): porównanie nienadzorowanych metod dyskretyzacji
-<!--
-    Dla wybranych w punkcie b) cech zastosuj i porównaj wyniki uzyskane 
-    dla różnych metod dyskretyzacji nienadzorowanej (ang. unsupervised 
-    discretization), przyjmując, że liczba kategorii jest równa liczbie klas 
-    (tzn. K = 3). 
-    
-    W porównaniach uwzględnij algorytmy: 
-    - equal width, 
-    - equal frequency, 
-    - k-means clustering 
-    - oraz dyskretyzację na bazie przedziałów zadanych przez użytkownika.
-    
-(Wskazówka: można wykorzystać funkcję discretize() z R-pakietu arules).
-Wykorzystując porównanie z rzeczywistymi etykietkami klas (zmienna Species),
-postaraj się rozstrzygnąć, który algorytm dyskretyzacji okazał się najbardziej 
-skuteczny. Czy wyniki otrzymane dla najlepszej cechy różnią się istotnie 
-od wyników dla najgorszej cechy?
--->
 
 Docelowa liczba przedziałów to $K=3$. Wykorzystamy funkcję *discretize()* 
 z pakietu \texttt{arules}.
+* **najlepszą** pod kątem zdolności dyskryminacji: `Petal.Width`
+* **najgorszą** pod kątem zdolności dyskryminacji: `Sepal.Width`
+```{r}
+#Wektor do rozrzutu punktów na osi Y
+y <- runif(150)
+```
 
-### Metoda (domyślna) oparta na równych częstościach (ang. equal frequency)      
+### Metoda (domyślna) oparta na równych częstościach (ang. equal frequency) 
 
-Można oprzeć się na rozdziale 3.1 z pliku *dyskretyzacja\_porownanie\_metod.html*.
+* Analiza cechy najlepszej (Petal.Width):
+```{r}
+#unkty cięcia i dyskretyzacja
+breaks_pw_freq <- discretize(iris$Petal.Width, method = "frequency", breaks = 3, onlycuts = TRUE)
+pw_freq <- discretize(iris$Petal.Width, method = "frequency", breaks = 3, labels = c("small","medium", "large"))
 
-Mianowicie, warto umieścić w omówieniu:
-\begin{itemize}
-\item rysunki analogiczne do rys. 4 oraz rys. 5 (mogą być obok siebie, 
-z wykorzystaniem ustawień \texttt{par(mfrow=c(1,2)))}
-\item rysunek analogiczny do rys. 6 (albo dać samą tabelę kontyngencji)
-\end{itemize}
-Oczywiście należy krótko (wystarczą zapewne 2-3 zdania) opisać co
-przedstawiają te rysunki.
+par(mfrow=c(1,2))
+hist(iris$Petal.Width, breaks = 10, main = "Metoda: frequency (Petal.Width)")
+abline(v = breaks_pw_freq, col = "red", lwd=2)
+
+plot(iris$Petal.Width, y, col=iris$Species, main = "Metoda: frequency (Petal.Width)")
+abline(v = breaks_pw_freq, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_pw_freq <- table(pw_freq, iris$Species)
+tab_pw_freq
+```
+
+* Analiza cechy najgorszej (Sepal.Width):
+
+```{r}
+breaks_sw_freq <- discretize(iris$Sepal.Width, method = "frequency", breaks = 3, onlycuts = TRUE)
+sw_freq <- discretize(iris$Sepal.Width, method = "frequency", breaks = 3, labels = c("small","medium", "large"))
+
+par(mfrow=c(1,2))
+hist(iris$Sepal.Width, breaks = 10, main = "Metoda: frequency (Sepal.Width)")
+abline(v = breaks_sw_freq, col = "red", lwd=2)
+
+plot(iris$Sepal.Width, y, col=iris$Species, main = "Metoda: frequency (Sepal.Width)")
+abline(v = breaks_sw_freq, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_sw_freq <- table(sw_freq, iris$Species)
+tab_sw_freq
+```
+
+* Wniosek: Metoda equal frequency wymusza podobną liczbę obserwacji w każdym przedziale, co widać po liniach odcięcia grupujących gęste "zbiory". W przypadku naturalnie oddzielonych gatunków (Petal.Width) prowadzi to do błędu i sztucznego rozdzielenia klasy pierwszej oraz zlania się klasy drugiej z trzecią.
+
 
 ### Dyskretyzacja oparta na przedziałach o jednakowej szerokości (ang. equal interval width)
 
-Można oprzeć się na rozdziale 3.2 z pliku *dyskretyzacja_porownanie_metod.html*
-i postępować jak w powyższym opisie.
+* Analiza cechy najlepszej (Petal.Width):
+
+```{r}
+breaks_pw_int <- discretize(iris$Petal.Width, method = "interval", breaks = 3, onlycuts = TRUE)
+pw_int <- discretize(iris$Petal.Width, method = "interval", breaks = 3, labels = c("small","medium", "large"))
+
+par(mfrow=c(1,2))
+hist(iris$Petal.Width, breaks = 10, main = "Metoda: interval (Petal.Width)")
+abline(v = breaks_pw_int, col = "red", lwd=2)
+
+plot(iris$Petal.Width, y, col=iris$Species, main = "Metoda: interval (Petal.Width)")
+abline(v = breaks_pw_int, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_pw_int <- table(pw_int, iris$Species)
+tab_pw_int
+```
+
+* Analiza cechy najgorszej (Sepal.Width):
+
+```{r}
+breaks_sw_int <- discretize(iris$Sepal.Width, method = "interval", breaks = 3, onlycuts = TRUE)
+sw_int <- discretize(iris$Sepal.Width, method = "interval", breaks = 3, labels = c("small","medium", "large"))
+
+par(mfrow=c(1,2))
+hist(iris$Sepal.Width, breaks = 10, main = "Metoda: interval (Sepal.Width)")
+abline(v = breaks_sw_int, col = "red", lwd=2)
+
+plot(iris$Sepal.Width, y, col=iris$Species, main = "Metoda: interval (Sepal.Width)")
+abline(v = breaks_sw_int, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_sw_int <- table(sw_int, iris$Species)
+tab_sw_int
+```
+
+* Wniosek: Podział na przedziały o stałej szerokości nie uwzględnia gęstości danych. Dla cechy Petal.Width podział wypada nieco lepiej niż w equal frequency, jednak dla gęstej cechy Sepal.Width ogromna większość obserwacji ląduje w środkowej części, przez co skrajne przedziały są niemal puste.
+
 
 ### Dyskretyzacja oparta na algorytmie grupowania (ang. k-means discretization)
 
-Można oprzeć się na rozdziale 3.3 z pliku *dyskretyzacja_porownanie_metod.html*
-i postępować jak w powyższym opisie.
+* Analiza cechy najlepszej (Petal.Width):
+
+```{r}
+breaks_pw_clust <- discretize(iris$Petal.Width, method = "cluster", breaks = 3, onlycuts = TRUE)
+pw_clust <- discretize(iris$Petal.Width, method = "cluster", breaks = 3, labels = c("small","medium", "large"))
+
+par(mfrow=c(1,2))
+hist(iris$Petal.Width, breaks = 10, main = "Metoda: cluster (Petal.Width)")
+abline(v = breaks_pw_clust, col = "red", lwd=2)
+
+plot(iris$Petal.Width, y, col=iris$Species, main = "Metoda: cluster (Petal.Width)")
+abline(v = breaks_pw_clust, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_pw_clust <- table(pw_clust, iris$Species)
+tab_pw_clust
+```
+
+* Analiza cechy najgorszej (Sepal.Width):
+
+```{r}
+breaks_sw_clust <- discretize(iris$Sepal.Width, method = "cluster", breaks = 3, onlycuts = TRUE)
+sw_clust <- discretize(iris$Sepal.Width, method = "cluster", breaks = 3, labels = c("small","medium", "large"))
+
+par(mfrow=c(1,2))
+hist(iris$Sepal.Width, breaks = 10, main = "Metoda: cluster (Sepal.Width)")
+abline(v = breaks_sw_clust, col = "red", lwd=2)
+
+plot(iris$Sepal.Width, y, col=iris$Species, main = "Metoda: cluster (Sepal.Width)")
+abline(v = breaks_sw_clust, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+tab_sw_clust <- table(sw_clust, iris$Species)
+tab_sw_clust
+```
+
+
+* Wniosek: Algorytm grupowania K-means odnajduje naturalne zagęszczenia w danych, co daje optymalne rezultaty. Jak pokazują tabele i czerwone linie podziału, algorytm k-means dla zmiennej Petal.Width bardzo trafnie wydzielił na wykresie wszystkie trzy gatunki z minimalnym błędem.
+
 
 ### Dyskretyzacja z przedziałami zadanymi przez użytkownika
 
-Można oprzeć się na rozdziale 3.4 z pliku *dyskretyzacja_porownanie_metod.html*
-i postępować jak w powyższym opisie.
+* Analiza cechy najlepszej (Petal.Width):
+
+```{r}
+#Granice ustalam sobie na podstawie wykresów z podpunktu b)
+breaks_pw_user <- c(-Inf, 0.8, 1.75, Inf)
+pw_fixed <- discretize(iris$Petal.Width, method = "fixed", 
+                      breaks = breaks_pw_user, labels = c("small","medium", "large"))
+
+table(pw_fixed)
+
+par(mfrow=c(1,2))
+hist(iris$Petal.Width, breaks = 10, main = "Metoda: fixed (Petal.Width)")
+abline(v = breaks_pw_user, col = "red", lwd=2)
+
+plot(iris$Petal.Width, y, col=iris$Species, main = "Metoda: fixed (Petal.Width)")
+abline(v = breaks_pw_user, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+table(Zdyskretyzowana = pw_fixed, Prawdziwa = iris$Species)
+```
+
+* Analiza cechy najgorszej (Sepal.Width):
+```{r}
+breaks_sw_user <- c(-Inf, 2.8, 3.3, Inf)
+sw_fixed <- discretize(iris$Sepal.Width, method = "fixed", 
+                      breaks = breaks_sw_user, labels = c("small","medium", "large"))
+
+table(sw_fixed)
+
+par(mfrow=c(1,2))
+hist(iris$Sepal.Width, breaks = 10, main = "Metoda: fixed (Sepal.Width)")
+abline(v = breaks_sw_user, col = "red", lwd=2)
+
+plot(iris$Sepal.Width, y, col=iris$Species, main = "Metoda: fixed (Sepal.Width)")
+abline(v = breaks_sw_user, col = "red", lwd=3)
+legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
+par(mfrow=c(1,1))
+
+table(Zdyskretyzowana = sw_fixed, Prawdziwa = iris$Species)
+```
+
+* Wniosek: Granice dyskretyzacji zostały tu wybrane "na oko" na podstawie analizy z wykresu. Gdy mamy cechę o wysokiej zdolności dyskryminacji (Petal.Width) osiągamy niemal idealne wydzielenie klas, co wyraźnie widać na wykresie punktowym. Z kolei przy najgorszej (Sepal.Width), z powodu nakładania się na siebie gatunków, żadne własne granice nie są w stanie zapewnić dobrego podziału klas.
+
 
 ### Podsumowanie
 
-Zbierz i krótko opisz uzyskane wyniki. W tym celu 
-\begin{itemize}
-\item wyznacz współczynniki zgodności za pomocą funkcji *compareMatchedClasses()*
-z pakietu \texttt{arules}, tak jak zostało to opisane na koniec rozdziału 3.1 
-w pliku *dyskretyzacja\_porownanie\_metod.html*,
-\item postaraj się rozstrzygnąć, który algorytm dyskretyzacji okazał się najbardziej skuteczny, biorąc pod uwagę wykonane wcześniej rysunki oraz 
-otrzymane współczynnik zgodności,
-\item oceń, czy wyniki otrzymane dla najlepszej cechy różnią się istotnie 
-od wyników dla najgorszej cechy.
-\end{itemize}
+* Współczynniki zgodności:  
+```{r}
+#Zgodność dla Petal.Width
+acc_pw <- c(
+  compareMatchedClasses(pw_freq, iris$Species),
+  compareMatchedClasses(pw_int, iris$Species),
+  compareMatchedClasses(pw_clust, iris$Species),
+  compareMatchedClasses(pw_fixed, iris$Species)
+)
+
+#Zgodność dla Sepal.Width
+acc_sw <- c(
+  compareMatchedClasses(sw_freq, iris$Species),
+  compareMatchedClasses(sw_int, iris$Species),
+  compareMatchedClasses(sw_clust, iris$Species),
+  compareMatchedClasses(sw_fixed, iris$Species)
+)
+
+wyniki <- data.frame(
+  Metoda = c("Equal Frequency", "Equal Interval", "K-means", "Fixed (User)"),
+  Petal.Width = acc_pw,
+  Sepal.Width = acc_sw
+)
+
+print(wyniki)
+```
+
+* Wnioski:  
+Na podstawie wyliczonych współczynników zgodności oraz analizy wykresów wyciągnięto następujące wnioski:  
+
+* Współczynniki zgodności: Wszystkie cztery testowane algorytmy wygenerowały identyczne wyniki metryk (diag i kappa) dla poszczególnych cech.  
+
+* Najskuteczniejszy algorytm: Skoro metryki liczbowe zremisowały, decydują wykresy. Najbardziej naturalne i sensowne podziały, zapewnił algorytm K-means oraz metoda z przedziałami zadanymi ręcznie.  
+
+* Porównanie cech: Wyniki różnią się drastycznie. Dla najlepszej cechy (Petal.Width) zgodność klasyfikacji jest niemal perfekcyjna (współczynnik kappa ~0.94). Z kolei dla cechy najgorszej (Sepal.Width) zgodność drastycznie spada (kappa ~0.35).  
+
+* Wniosek końcowy: Jakość i zdolność cechy do podziału są znacznie ważniejsze niż wybór metody dyskretyzacji. Żaden algorytm nie jest w stanie wygenerować dobrego podziału, jeśli dane (jak w Sepal.Width) silnie się nakładają na siebue.  
+
+
 
 
 
