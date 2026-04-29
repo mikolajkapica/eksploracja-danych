@@ -258,8 +258,8 @@ konieczne jest zastosowanie standaryzacji
 Wybieramy do analizy wyłącznie cechy ilościowe.
 ```{r}
 # wybór danych zawierających wyłącznie cechy ilościowe
-#ilosciowe <- which(sapply(dane.2, is.numeric))
-#dane.2.num <- dane.2[,ilosciowe]
+ilosciowe <- which(sapply(dane.2, is.numeric))
+dane.2.num <- dane.2[, ilosciowe]
 ```
 
 
@@ -268,6 +268,8 @@ Wybieramy do analizy wyłącznie cechy ilościowe.
 Wyznaczamy wariancje poszczególnych cech. 
 ```{r}
 # wariancje poszczególnych cech
+wariancje <- sort(sapply(dane.2.num, var, na.rm = TRUE), decreasing = TRUE)
+wariancje
 
 ```
 
@@ -275,13 +277,30 @@ Wyznaczamy wariancje poszczególnych cech.
 Sprawdzamy również konieczność standaryzacji danych na podstawie wykresów pudełkowych.
 ```{r}
 # wykresy pudełkowe przed standaryzacją
+par(mar = c(8, 4, 2, 1))
+boxplot(dane.2.num,
+        las = 2,
+        col = "lightblue",
+        main = "Cechy ilościowe przed standaryzacją")
+```
 
+Na wykresie pudełkowym przed standaryzacją widać, że zmienne różnią się
+poziomem wartości oraz rozrzutem. Oznacza to, że cechy o większej wariancji
+mogłyby mieć zbyt duży wpływ na wynik PCA. Z tego powodu w dalszej analizie
+stosujemy standaryzację danych.
 
+```{r}
 # wykresy pudełkowe po standaryzacji
+dane.2.num.scaled <- scale(dane.2.num)
+boxplot(dane.2.num.scaled,
+        las = 2,
+        col = "lightgreen",
+        main = "Cechy ilościowe po standaryzacji")
+par(mar = c(5, 4, 4, 2) + 0.1)
 
 ```
 
-## podpunkt c: Wyznaczenie składowych gównych
+## podpunkt c: Wyznaczenie składowych głównych
 <!--
 Wyznacz składowe główne i porównaj ich rozrzut wykorzystując wykresy pudełkowe.
 
@@ -297,9 +316,13 @@ Analizując wektory ładunków (loadings) dla kilku pierwszych składowych
 
 ```{r}
 # Wyznaczanie składowych głównych
-#dane.pca <- 
+dane.pca <- prcomp(dane.2.num, center = TRUE, scale. = TRUE)
 
 # porównanie rozrzutu składowych głównych za pomocą wykresów pudełkowych
+boxplot(dane.pca$x,
+        las = 2,
+        col = "lightblue",
+        main = "Rozrzut składowych głównych")
 
 
 ```
@@ -308,15 +331,20 @@ Analizując wektory ładunków (loadings) dla kilku pierwszych składowych
 Analizujemy wektory ładunków dla kilku pierwszych składowych głównych.
 ```{r}
 # wektory ładunków (loadings) dla PC1, PC2, PC3
+loadings <- dane.pca$rotation[, 1:3]
+loadings
 
 
 # PC1
+sort(loadings[, "PC1"], decreasing = TRUE)
 
 
 # PC2
+sort(loadings[, "PC2"], decreasing = TRUE)
 
 
 # PC3
+sort(loadings[, "PC3"], decreasing = TRUE)
 
 ```
 
@@ -339,21 +367,44 @@ całkowitej zmienności danych.
 
 ```{r}
 # wariancje odpowiadające poszczególnym składowym głównym
+summary(dane.pca)
 
 
 # wariancje
+variances <- dane.pca$sdev^2
+variances
 
 
 # frakcje wariancji
-#variances <- 
+variance.fractions <- variances / sum(variances)
+variance.fractions
 
 # skumulowane wariancje
-#cumulative.variances <- 
+cumulative.variances <- cumsum(variance.fractions)
+cumulative.variances
+
+# liczba składowych potrzebna do wyjaśnienia 80% i 90% zmienności
+which(cumulative.variances >= 0.80)[1]
+which(cumulative.variances >= 0.90)[1]
 ```
 
 
 ```{r}
 # wykres słupkowy skumulowanej wariancji z naniesionymi poziomem 80%
+barplot(cumulative.variances,
+        names.arg = paste0("PC", seq_along(cumulative.variances)),
+        las = 2,
+        ylim = c(0, 1),
+        col = "lightblue",
+        ylab = "Skumulowana frakcja wyjaśnionej wariancji",
+        main = "Skumulowana wariancja wyjaśniona przez PCA")
+abline(h = 0.80, col = "red", lwd = 2, lty = 2)
+abline(h = 0.90, col = "darkgreen", lwd = 2, lty = 2)
+legend("bottomright",
+       legend = c("80%", "90%"),
+       col = c("red", "darkgreen"),
+       lty = 2,
+       lwd = 2)
 
 
 ```
@@ -361,21 +412,33 @@ całkowitej zmienności danych.
 
 
 ## podpunkt e: Wizualizacja danych wielowymiarowych
-```{r, fig.width=10, fig.height=6}
+
+```{r, echo=FALSE, fig.width=10, fig.height=6, out.extra='angle=-90', out.width='0.90\\textheight'}
 # Kolory (mamy 6 etykiet kontynentów)
 # length(unique(UA_Country))# jest 135 państw
 # length(unique(UA_Continent))# jest 6 kontynentów
-# kolory <- rainbow(6)
+kolory <- rainbow(length(levels(UA_Continent)))
+pc1 <- dane.pca$x[, 1]
+pc2 <- dane.pca$x[, 2]
+x.zapas <- 0.15 * diff(range(pc1))
+y.zapas <- 0.15 * diff(range(pc2))
 
 # wykres w przestrzeni (PC1,PC2)
-# plot(dane.pca$x[,1], dane.pca$x[,2], pch=16,
-#      col = kolory[as.numeric(UA_Continent)])
+par(mar = c(4, 4, 3, 1))
+plot(pc1, pc2, pch = 16,
+     col = kolory[as.numeric(UA_Continent)],
+     xlim = range(pc1) + c(-x.zapas, x.zapas),
+     ylim = range(pc2) + c(-y.zapas, y.zapas),
+     xlab = "PC1", ylab = "PC2",
+     main = "Miasta w przestrzeni PC1-PC2")
 
 # Nanosimy tekst z nazwami miast
-#text(dane.pca$x[,1], dane.pca$x[,2]+0.2,labels = UA_Name, cex=0.3)
+text(pc1, pc2 + 0.15, labels = UA_Name, cex = 0.25)
 
 # dodajemy legendę względem nazw kontynentów
-#legend("bottomright",legend = levels(UA_Continent), pch=16, cex=0.7, col=kolory)
+legend("bottomright", legend = levels(UA_Continent), pch = 16, cex = 0.6,
+       col = kolory, bty = "n")
+par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
 
@@ -395,16 +458,21 @@ library(factoextra)
 library(corrplot)
 
 # domyślne parametry
-#fviz_pca_biplot(dane.pca)
+fviz_pca_biplot(dane.pca)
 
 # usuwamy nazwy przypadków
-#fviz_pca_biplot(dane.pca, label="var")
+fviz_pca_biplot(dane.pca, label = "var")
 
 # dodajemy kolory odpowiadające ustalonym grupom/klasom
-#fviz_pca_biplot(dane.pca, label="var", col.ind = UA_Continent)
+fviz_pca_biplot(dane.pca, label = "var", col.ind = UA_Continent)
 
 # dodajemy elipsy koncentracji
-#fviz_pca_biplot(dane.pca, label="var", col.ind = UA_Continent, addEllipses = TRUE)
+fviz_pca_biplot(dane.pca, label = "var", col.ind = UA_Continent, addEllipses = TRUE)
+
+# macierz korelacji cech wejściowych
+correlations <- cor(dane.2.num, use = "complete.obs")
+round(correlations, 2)
+corrplot(correlations, method = "color", type = "upper", tl.cex = 0.7)
 
 ```
 
@@ -551,10 +619,3 @@ Można wykorzystać infomracje zawarte w materiałach ze strony wykłądu na ePo
 
 - ocena_jakosci_MDS.R
 - MDS_odwzorowanie_mapy_Europy.R
-
-
-
-
-
-
-  
