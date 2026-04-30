@@ -523,6 +523,46 @@ boxplot(dane.pca$x,
 PCA tworzy nowe zmienne, czyli składowe główne. Największy rozrzut ma PC1, a
 kolejne składowe niosą coraz mniej informacji.
 
+Porównajmy jeszcze krótko PCA wykonaną ze standaryzacją i bez niej.
+
+```{r}
+pca.scaled <- prcomp(dane.2.num, center = TRUE, scale. = TRUE)
+pca.unscaled <- prcomp(dane.2.num, center = TRUE, scale. = FALSE)
+
+var.scaled <- pca.scaled$sdev^2 / sum(pca.scaled$sdev^2)
+var.unscaled <- pca.unscaled$sdev^2 / sum(pca.unscaled$sdev^2)
+
+top_loadings <- function(pca, pc, n = 4) {
+  paste(names(sort(abs(pca$rotation[, pc]), decreasing = TRUE)[1:n]),
+        collapse = ", ")
+}
+
+porownanie.pca <- data.frame(
+  Metryka = c("Liczba PC do 80%",
+              "Liczba PC do 90%",
+              "Najważniejsze cechy PC1",
+              "Najważniejsze cechy PC2"),
+  Standaryzacja = c(which(cumsum(var.scaled) >= 0.80)[1],
+                    which(cumsum(var.scaled) >= 0.90)[1],
+                    top_loadings(pca.scaled, "PC1"),
+                    top_loadings(pca.scaled, "PC2")),
+  `Bez standaryzacji` = c(which(cumsum(var.unscaled) >= 0.80)[1],
+                          which(cumsum(var.unscaled) >= 0.90)[1],
+                          top_loadings(pca.unscaled, "PC1"),
+                          top_loadings(pca.unscaled, "PC2")),
+  check.names = FALSE
+)
+
+knitr::kable(porownanie.pca,
+             caption = "Porównanie PCA ze standaryzacją i bez niej")
+```
+
+Wyniki są podobne: w obu wariantach do wyjaśnienia 80% i 90% zmienności
+potrzeba tej samej liczby składowych, a najważniejsze ładunki mocno się
+pokrywają. Najprawdopodobniej wynika to z tego, że wskaźniki w danych były już
+podane w podobnej skali 0--10. Standaryzację mimo to zostawiamy, bo w PCA jest
+to standardowy sposób porównywania cech na wspólnej skali.
+
 
 Analizujemy wektory ładunków dla kilku pierwszych składowych głównych.
 ```{r}
@@ -693,9 +733,12 @@ corrplot(correlations, method = "color", type = "upper", tl.cex = 0.7)
 
 ```
 
-Biplot pokazuje kierunki zmiennych: podobne kierunki oznaczają dodatnią
-korelację, przeciwne - ujemną. Macierz korelacji potwierdza m.in. silne związki
-`Startups` z `Venture Capital` oraz `Cost of Living` z `Housing`.
+Biplot i macierz korelacji dają spójne wnioski. Cechy, których strzałki na
+biplocie mają podobny kierunek, mają też duże dodatnie korelacje w macierzy
+korelacji. Widać to np. dla dość oczywistych par `Startups` -
+`Venture Capital` oraz `Cost of Living` - `Housing`. Ciekawsze jest to, że
+`Business Freedom` jest dodatnio skorelowane z wieloma cechami jakości miasta,
+m.in. z `Healthcare`, `Education`, `Environmental Quality` i `Economy`.
 
 
 
@@ -714,10 +757,26 @@ i wnioski?
 -->
 
 PCA pozwala opisać dane mniejszą liczbą wymiarów. Pierwsze dwie składowe
-wyjaśniają ok. 45% zmienności, a pierwsze trzy ok. 57%; do 80% potrzeba 7
-składowych. Standaryzacja była potrzebna, bo cechy miały różne wariancje.
-Najsilniej powiązane są m.in. `Startups` z `Venture Capital`, a miasta nie
-dzielą się idealnie według kontynentów.
+wyjaśniają ok. 45% zmienności, a pierwsze trzy ok. 57%, do 80% potrzeba 7
+składowych, a do 90% potrzeba 10 składowych.
+
+Porównanie PCA ze standaryzacją i bez niej pokazuje, że liczba składowych
+potrzebna do 80% i 90% zmienności pozostaje taka sama, a najważniejsze ładunki
+nie zmieniają się radykalnie. Wynika to najpewniej z tego, że wskaźniki były
+już podane w podobnej skali 0--10. Mimo tego w analizie zastosowaliśmy
+standaryzację, bo w PCA jest to standardowe podejście pozwalające porównywać
+cechy na wspólnej skali.
+
+Ciekawą obserwacją jest, że na wykresie miast w przestrzeni PC1-PC2 miasta z
+tych samych kontynentów często skupiają się w podobnych obszarach, ale podział
+nie jest idealny. Europa, Ameryka Północna i Oceania częściej leżą po stronie
+ujemnego PC1, co w tej analizie wiąże się z lepszymi warunkami rozwoju miasta.
+Widać jednak miasta odstające od ogólnego położenia swojego kontynentu, np.
+Singapur w Azji albo miasta Ameryki Środkowej względem reszty Ameryki Północnej.
+Z kolei miasta o silnym profilu startupowo-kapitałowym i kulturalnym częściej
+leżą przy ujemnym PC2. W korelacjach widać też, że `Business Freedom` wiąże się
+dodatnio z kilkoma cechami jakości miasta, np. `Healthcare`, `Education`,
+`Environmental Quality` i `Economy`.
 
 
 
