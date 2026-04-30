@@ -1210,31 +1210,6 @@ Dla `Pclass` również widoczna jest struktura grupowa. Jest to logiczne, poniew
 klasa pasażerska bezpośrednio liczona jest przy odmienności i dodatkowo jest
 powiązana z ceną biletu (`Fare`).
 
-```{r, fig.width=7, fig.height=5, fig.cap="Potencjalne obserwacje odstające w dwuwymiarowej przestrzeni MDS danych Titanic."}
-distance_from_center <- sqrt((mds_df$MDS1 - median(mds_df$MDS1))^2 +
-                               (mds_df$MDS2 - median(mds_df$MDS2))^2)
-outlier_threshold <- quantile(distance_from_center, 0.99)
-outlier_idx <- which(distance_from_center >= outlier_threshold)
-
-plot(mds_df$MDS1, mds_df$MDS2,
-     pch = 16,
-     col = adjustcolor("gray50", alpha.f = 0.5),
-     xlab = "MDS1", ylab = "MDS2",
-     main = "Potencjalne obserwacje odstające w przestrzeni MDS")
-points(mds_df$MDS1[outlier_idx], mds_df$MDS2[outlier_idx],
-       pch = 19, col = "red")
-text(mds_df$MDS1[outlier_idx], mds_df$MDS2[outlier_idx],
-     labels = outlier_idx, pos = 3, cex = 0.75, col = "red")
-grid()
-
-mds_df[outlier_idx,
-       c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")]
-```
-
-Na wykresie widoczne są pojedyncze punkty położone dalej od centrum chmury.
-Można je traktować jako potencjalne obserwacje nietypowe, wynikające np. z bardzo
-wysokiej ceny biletu, nietypowej liczby członków rodziny na pokładzie albo
-rzadkiej kombinacji klasy, wieku, płci i portu wejścia.
-
-
-Czy na wykresie widoczne są obserwacje nietypowe (odstające)?
+Pomimo, że występują mniej typowe kombinacje cech pasażerów, sama wizualizacja
+MDS nie wskazuje na silne, jednoznaczne obserwacje odstające. Widoczne są raczej
+osobne skupiska lub kilka punktów na ich obrzeżach.
