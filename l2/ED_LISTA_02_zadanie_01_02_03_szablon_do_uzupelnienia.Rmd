@@ -334,20 +334,20 @@ knitr::kable(table(Zdyskretyzowana = sw_fixed, Prawdziwa = iris$Species),
 - Współczynniki zgodności:  
 ```{r}
 #Zgodność dla Petal.Width
-acc_pw <- c(
-  compareMatchedClasses(pw_freq, iris$Species),
-  compareMatchedClasses(pw_int, iris$Species),
-  compareMatchedClasses(pw_clust, iris$Species),
-  compareMatchedClasses(pw_fixed, iris$Species)
-)
+acc_pw <- do.call(rbind, c(
+  compareMatchedClasses(pw_freq, iris$Species)["diag"],
+  compareMatchedClasses(pw_int, iris$Species)["diag"],
+  compareMatchedClasses(pw_clust, iris$Species)["diag"],
+  compareMatchedClasses(pw_fixed, iris$Species)["diag"]
+))
 
 #Zgodność dla Sepal.Width
-acc_sw <- c(
-  compareMatchedClasses(sw_freq, iris$Species),
-  compareMatchedClasses(sw_int, iris$Species),
-  compareMatchedClasses(sw_clust, iris$Species),
-  compareMatchedClasses(sw_fixed, iris$Species)
-)
+acc_sw <- do.call(rbind, c(
+  compareMatchedClasses(sw_freq, iris$Species)["diag"],
+  compareMatchedClasses(sw_int, iris$Species)["diag"],
+  compareMatchedClasses(sw_clust, iris$Species)["diag"],
+  compareMatchedClasses(sw_fixed, iris$Species)["diag"]
+))
 
 wyniki <- data.frame(
   Metoda = c("Equal Frequency", "Equal Interval", "K-means", "Fixed (User)"),
