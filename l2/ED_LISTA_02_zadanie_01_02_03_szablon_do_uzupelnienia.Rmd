@@ -30,6 +30,8 @@ knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
 library(xtable) # do tworzenia tabel texowych w pdf
 library(arules) # zawiera funkcję discretize() do zadania 1
 library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
+
+set.seed(42)
 ```
     
     
@@ -842,17 +844,36 @@ przede wszystkim wysokim poziomem rozwoju gospodarczego.
 
 -->
 
+## podpunkt a i b : dane, przygotowanie danych
 
-## podpunkt a : dane
+```{r}
+library(titanic)
+data(titanic_train)
+```
 
-Do zrobienia:
-- opisać zbiór danych (liczba zmiennych, liczba obserwacji, typy zmiennych 
-                       i ich zakres/liczba poziomów)
-- krótko opisać poszczególne zmienne (jak w sprawozdaniu do listy 1)
+Zbiór danych `titanic_train` z pakietu `titanic` zawiera wybrane charakterystyki opisujące pasażerów legendarnego statku RMS Titanic, który zatonął w nocy z 14 na 15 kwietnia 1912 roku.
 
-Opisy danych:
-https://cran.r-project.org/web/packages/titanic/refman/titanic.html
+Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
 
+\begin{itemize}
+\item \textbf{PassengerId} (integer; zakres: `r min(titanic_train$PassengerId)`-`r max(titanic_train$PassengerId)`) - unikalny identyfikator pasażera
+\item \textbf{Survived} (integer; poziomy: `r paste(sort(unique(titanic_train$Survived)), collapse = ", ")`) - informacja o przeżyciu katastrofy (0 = nie przeżył, 1 = przeżył)
+\item \textbf{Pclass} (integer; poziomy: `r paste(sort(unique(titanic_train$Pclass)), collapse = ", ")`) - klasa biletu (1 = pierwsza, 2 = druga, 3 = trzecia); jest to też przybliżony proxy statusu społeczno-ekonomicznego (SES)
+\item \textbf{Name} (character) - imię i nazwisko pasażera
+\item \textbf{Sex} (character; poziomy: `r paste(sort(unique(titanic_train$Sex)), collapse = ", ")`) - płeć pasażera
+\item \textbf{Age} (numeryczny; zakres: `r min(titanic_train$Age, na.rm = TRUE)`-`r max(titanic_train$Age, na.rm = TRUE)`) - wiek pasażera w latach; dla dzieci poniżej 1 roku może być zapisany jako ułamek, a wartości estymowane mogą kończyć się na .5
+\item \textbf{SibSp} (integer; zakres: `r min(titanic_train$SibSp)`-`r max(titanic_train$SibSp)`) - liczba rodzeństwa i małżonków na pokładzie (Sibling = brother, sister, stepbrother, stepsister; Spouse = husband, wife)
+\item \textbf{Parch} (integer; zakres: `r min(titanic_train$Parch)`-`r max(titanic_train$Parch)`) - liczba rodziców i dzieci na pokładzie (Parent = mother, father; Child = daughter, son, stepdaughter, stepson)
+\item \textbf{Ticket} (character) - numer biletu
+\item \textbf{Fare} (numeryczny; zakres: `r min(titanic_train$Fare)`-`r max(titanic_train$Fare)`) - cena biletu
+\item \textbf{Cabin} (character) - numer kabiny
+\item \textbf{Embarked} (character; poziomy: `r paste(sort(setdiff(unique(titanic_train$Embarked), "")), collapse = ", ")`) - port, w którym pasażer wszedł na pokład (C = Cherbourg, Q = Queenstown, S = Southampton)
+\end{itemize}
+
+Szczegółowy opis zmiennych można znaleźć w dokumentacji pakietu
+\texttt{titanic}:
+\url{https://cran.r-project.org/web/packages/titanic/refman/titanic.html} oraz
+na stronie źródła danych \url{https://www.kaggle.com/c/titanic}.
 
 ## podpunkt b : Przygotowanie danych
 <!--
@@ -874,27 +895,81 @@ Uwaga: kolumnę Survived traktujemy jako zmienną grupującą i nie będziemy je
 -->
 
 ```{r}
-# opcjonalna instalacja pakietu, jeśli go nie mamy
-#install.packages("titanic")
+# Najpierw usuwamy zmienne pełniące rolę identyfikatorów pasażerów
+dane.3 <- titanic_train
+dane.3 <- dane.3[, !(names(dane.3) %in% c("PassengerId", "Name", "Ticket", "Cabin"))]
 
-# dołączenie pakietu titanic
+# Puste napisy w Embarked traktujemy jako rzeczywiste braki danych
+dane.3$Embarked <- trimws(dane.3$Embarked)
+dane.3$Embarked[dane.3$Embarked == ""] <- NA
 
+# Następnie wykonujemy konwersje typów cech
+dane.3$Survived <- factor(dane.3$Survived,
+                          levels = c(0, 1),
+                          labels = c("nie przeżył", "przeżył"))
+dane.3$Pclass <- factor(dane.3$Pclass,
+                        levels = c(3, 2, 1),
+                        ordered = TRUE)
+dane.3$Sex <- factor(dane.3$Sex)
+dane.3$Embarked <- factor(dane.3$Embarked)
 
-# wczytanie danych titanic_train z tego pakietu
-
-
-# konwersje typów cech
-
-
-# Usuwamy niepotrzebne zmienne
-
-
-# czy w danych występują brakujące wartości?
-
+str(dane.3)
 ```
 
+```{r}
+# Sprawdzamy brakujące wartości po przygotowaniu danych
+missing_counts_3 <- colSums(is.na(dane.3))
+missing_counts_3
 
+# Udział braków w procentach
+round(100 * missing_counts_3 / nrow(dane.3), 2)
+```
 
+W interesującym nas zbiorze występują braki danych przede wszystkim w zmiennej
+\textbf{Age} (`r sum(is.na(dane.3$Age))`, czyli około
+`r round(100 * mean(is.na(dane.3$Age)), 0)`\% obserwacji). To zbyt dużo, aby
+po prostu wyrzucić wszystkie rekordy z pustym wiekiem. W zmiennej
+\textbf{Embarked} są natomiast tylko `r sum(is.na(dane.3$Embarked))` braki, więc
+te obserwacje usuwamy ze zbioru.
+
+```{r}
+# Usuwamy tylko rekordy z brakującym Embarked
+dane.3 <- dane.3[!is.na(dane.3$Embarked), ]
+dane.3 <- droplevels(dane.3) # usuwamy poziom NA dla Embarked
+
+# Dla wieku porównujemy trzy proste warianty czyszczenia danych.
+# Wariant 1: usunięcie całej kolumny Age.
+titanic_without_age <- dane.3
+titanic_without_age$Age <- NULL
+
+# Wariant 2: usunięcie rekordów z brakującym Age.
+titanic_age_complete <- droplevels(dane.3[!is.na(dane.3$Age), ])
+
+# Wariant 3: imputacja Age medianą w grupach Sex x Pclass.
+impute_age_by_group <- function(data) {
+  result <- data
+  global_median <- median(result$Age, na.rm = TRUE)
+  missing_age_idx <- which(is.na(result$Age))
+  
+  for (i in missing_age_idx) {
+    group_age <- result$Age[result$Sex == result$Sex[i] &
+                              result$Pclass == result$Pclass[i]]
+    group_median <- median(group_age, na.rm = TRUE)
+    
+    if (is.na(group_median)) {
+      group_median <- global_median
+    }
+    
+    result$Age[i] <- group_median
+  }
+  
+  result
+}
+
+titanic_imputed <- impute_age_by_group(dane.3)
+```
+
+W podpunkcie C porównuję te trzy warianty już na podstawie faktycznych wyników MDS. Do wizualizacji w podpunkcie D wykorzystuję wariant z imputacją wieku medianą w grupach `Sex x Pclass`, ponieważ zachowuje prawie pełny zbiór danych i nadal używa informacyjnej zmiennej `Age`.
 
 ## podpunkt c : Redukcja wymiaru na bazie MDS
 <!--
@@ -906,15 +981,93 @@ Jako wymiar docelowej przestrzeni przyjmij d = 2 lub 3.
 
 Zbadaj jakość otrzymanego odwzorowania, wykorzystując w tym celu 
 diagram Sheparda.
-
 -->
 
-Można wykorzystać infomracje zawarte w materiałach ze strony wykłądu na ePortalu
+Wykonujemy analizę MDS dla każdego z trzech wariantów i porównujemy wyniki. Stosujemy
+algorytm klasycznego MDS (`cmdscale()`) oraz macierz odmienności Gowera (`daisy()`), ponieważ
+nasze dane są zarówno ilościowe jak i jakościowe.
 
-- ocena_jakosci_MDS.R
-- MDS_odwzorowanie_mapy_Europy.R
+```{r}
+library(cluster)
 
+run_mds_analysis <- function(data, k = 2) {
+  mds_input <- data[, setdiff(names(data), "Survived")]
+  
+  gower_dissimilarities <- daisy(
+    mds_input,
+    metric = "gower",
+    type = list(ordratio = "Pclass"))
+  gower_distance_vector <- as.vector(gower_dissimilarities)
+  
+  mds_result <- cmdscale(gower_dissimilarities, k = k)
+  mds_points <- as.data.frame(mds_result)
+  names(mds_points) <- paste0("MDS", seq_len(k))
+  
+  mds_distance_vector <- as.vector(dist(mds_points))
+  stress_value <- sum((gower_distance_vector - mds_distance_vector)^2)
+  normalized_stress <- sqrt(stress_value / sum(gower_distance_vector^2))
+  
+  list(
+    data = data,
+    mds_input = mds_input,
+    gower_dissimilarities = gower_dissimilarities,
+    gower_distance_vector = gower_distance_vector,
+    mds_result = mds_result,
+    mds_distance_vector = mds_distance_vector,
+    normalized_stress = normalized_stress,
+    mds_df = cbind(data, mds_points)
+  )
+}
 
+mds_variants <- list(
+  without_age = titanic_without_age,
+  age_complete = titanic_age_complete,
+  imputed = titanic_imputed
+)
+
+mds_results <- lapply(mds_variants, run_mds_analysis, k = 2)
+
+mds_comparison <- data.frame(
+  method = c("Usunięcie kolumny Age",
+             "Usunięcie rekordów z pustym Age",
+             "Imputacja Age medianą w grupach Sex x Pclass"),
+  normalized_STRESS = sapply(mds_results, 
+                             function(result) result$normalized_stress)
+)
+
+mds_comparison
+```
+
+Chociaż wariant `titanic_age_complete` daje nieco najniższy STRESS, usuwa około `r round(100 * (nrow(titanic_train) - nrow(titanic_age_complete)) / nrow(titanic_train), 0)`\% obserwacji. Dlatego do dalszej wizualizacji wybieramy wariant z imputacją, ponieważ zachowuje prawie cały zbiór danych.
+
+```{r, fig.width=6, fig.height=4}
+# Do dalszych wykresów wybieramy wariant z imputacją wieku.
+selected_mds <- mds_results$imputed # można zmienić na inny wariant
+mds_df <- selected_mds$mds_df
+gower_distance_vector <- selected_mds$gower_distance_vector
+mds_distance_vector <- selected_mds$mds_distance_vector
+normalized_stress <- selected_mds$normalized_stress
+
+# Do diagramu Sheparda losujemy tylko część par odległości,
+# żeby wykres nie był zbyt ciężki przy wyświetlaniu.
+sample_idx <- sample(seq_along(gower_distance_vector),
+                     min(5000, length(gower_distance_vector)))
+
+plot(gower_distance_vector[sample_idx], mds_distance_vector[sample_idx],
+     pch = 16,
+     cex = 0.35,
+     xlab = "oryginalna odmienność Gowera",
+     ylab = "odległość po MDS",
+     main = paste0(
+       "Diagram Sheparda, STRESS norm. = ",
+       signif(normalized_stress, 3)))
+abline(coef = c(0, 1), col = "red", lty = 2, lwd = 2)
+grid()
+```
+
+Diagram Sheparda porównuje oryginalne odmienności z odległościami w przestrzeni
+MDS. Odwzorowanie dwuwymiarowe nie jest idealne (choć zbliżone), ponieważ kilka
+zmiennych zostało sprowadzonych do tylko dwóch wymiarów.
 
 ## podpunkt d : Wizualizacja danych
 <!--
@@ -937,10 +1090,103 @@ oraz Pclass.
 
 Czy w tym przypadku widoczne na wykresie grupy (skupiska) są powiązane 
 z wartościami tych zmiennych?
-
 -->
 
-Można wykorzystać infomracje zawarte w materiałach ze strony wykłądu na ePortalu
+```{r, fig.width=7, fig.height=5}
+survived_colors <- c("nie przeżył" = "tomato3", "przeżył" = "steelblue3")
 
-- ocena_jakosci_MDS.R
-- MDS_odwzorowanie_mapy_Europy.R
+plot(mds_df$MDS1, mds_df$MDS2,
+     pch = 16,
+     col = adjustcolor(survived_colors[mds_df$Survived], alpha.f = 0.65),
+     xlab = "MDS1", ylab = "MDS2",
+     main = "MDS dla danych Titanic - kolor: przeżycie")
+legend("topright", legend = names(survived_colors),
+       col = survived_colors, pch = 16, bty = "n")
+grid()
+```
+
+Na wykresie kolorowanym według `Survived` nie widać dwóch całkowicie
+odseparowanych skupisk. Można jednak zauważyć obszary z większym udziałem osób,
+które przeżyły lub nie przeżyły. Oznacza to, że przeżycie było częściowo
+powiązane z profilem pasażera, ale nie tworzy samo w sobie idealnie oddzielnych
+grup w przestrzeni MDS.
+
+```{r, fig.width=7, fig.height=5}
+library(scatterplot3d)
+
+selected_mds_3d <- run_mds_analysis(titanic_imputed, k = 3)
+mds_3d_df <- selected_mds_3d$mds_df
+
+scatterplot3d(mds_3d_df$MDS1, mds_3d_df$MDS2, mds_3d_df$MDS3,
+              pch = 16,
+              color = adjustcolor(survived_colors[mds_3d_df$Survived], alpha.f = 0.65),
+              xlab = "MDS1", ylab = "MDS2", zlab = "MDS3",
+              main = "MDS 3D dla danych Titanic - kolor: przeżycie")
+legend("topright", legend = names(survived_colors),
+       col = survived_colors, pch = 16, bty = "n")
+```
+
+Wykres 3D dodaje trzeci wymiar MDS, więc pozwala zobaczyć strukturę danych z
+nieco mniejszą utratą informacji niż wykres 2D. Także tutaj nie widać jednak
+idealnego rozdzielenia pasażerów według `Survived`, co potwierdza, że informacja
+o przeżyciu jest tylko częściowo zgodna z naturalnym układem podobieństw między
+pasażerami.
+
+```{r, fig.width=7, fig.height=5}
+sex_colors <- c("female" = "violetred3", "male" = "darkcyan")
+
+plot(mds_df$MDS1, mds_df$MDS2,
+     pch = 16,
+     col = adjustcolor(sex_colors[mds_df$Sex], alpha.f = 0.65),
+     xlab = "MDS1", ylab = "MDS2",
+     main = "MDS dla danych Titanic - kolor: Sex")
+legend("topright", legend = names(sex_colors),
+       col = sex_colors, pch = 16, bty = "n")
+grid()
+```
+
+Podział względem `Sex` jest wyraźniejszy niż względem `Survived`, ponieważ płeć
+jest jedną ze zmiennych wejściowych użytych przy liczeniu odmienności Gowera.
+
+```{r, fig.width=7, fig.height=5}
+pclass_colors <- c("1" = "goldenrod2", "2" = "seagreen3", "3" = "gray40")
+
+plot(mds_df$MDS1, mds_df$MDS2,
+     pch = 16,
+     col = adjustcolor(pclass_colors[as.character(mds_df$Pclass)], alpha.f = 0.65),
+     xlab = "MDS1", ylab = "MDS2",
+     main = "MDS dla danych Titanic - kolor: Pclass")
+legend("topright", legend = paste("klasa", names(pclass_colors)),
+       col = pclass_colors, pch = 16, bty = "n")
+grid()
+```
+
+Dla `Pclass` również widoczna jest struktura grupowa. Jest to logiczne, ponieważ
+klasa pasażerska bezpośrednio wchodzi do macierzy odmienności i dodatkowo jest
+powiązana z ceną biletu (`Fare`).
+
+```{r, fig.width=7, fig.height=5}
+distance_from_center <- sqrt((mds_df$MDS1 - median(mds_df$MDS1))^2 +
+                               (mds_df$MDS2 - median(mds_df$MDS2))^2)
+outlier_threshold <- quantile(distance_from_center, 0.99)
+outlier_idx <- which(distance_from_center >= outlier_threshold)
+
+plot(mds_df$MDS1, mds_df$MDS2,
+     pch = 16,
+     col = adjustcolor("gray50", alpha.f = 0.5),
+     xlab = "MDS1", ylab = "MDS2",
+     main = "Potencjalne obserwacje odstające w przestrzeni MDS")
+points(mds_df$MDS1[outlier_idx], mds_df$MDS2[outlier_idx],
+       pch = 19, col = "red")
+text(mds_df$MDS1[outlier_idx], mds_df$MDS2[outlier_idx],
+     labels = outlier_idx, pos = 3, cex = 0.75, col = "red")
+grid()
+
+mds_df[outlier_idx,
+       c("Survived", "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked")]
+```
+
+Na wykresie widoczne są pojedyncze punkty położone dalej od centrum chmury.
+Można je traktować jako potencjalne obserwacje nietypowe, wynikające np. z bardzo
+wysokiej ceny biletu, nietypowej liczby członków rodziny na pokładzie albo
+rzadkiej kombinacji klasy, wieku, płci i portu wejścia.
