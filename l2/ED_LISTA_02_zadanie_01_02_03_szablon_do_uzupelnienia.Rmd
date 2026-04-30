@@ -361,11 +361,11 @@ knitr::kable(wyniki, caption = "Współczynniki zgodności dla różnych metod d
 ### Wnioski:  
 Na podstawie wyliczonych współczynników zgodności oraz analizy wykresów wyciągnięto następujące wnioski:  
 
-- Najskuteczniejszy algorytm: Najwyższe i identyczne współczynniki zgodności (diag równe 0.96 dla Petal.Width oraz 0.566 dla Sepal.Width) uzyskały metody: K-means oraz podział zadany ręcznie. Wynika stąd, że algorytm K-means potrafi bardzo dobrze odwzorować podział. Najgorzej w przypadku `Petal.Width` poradziła sobie metoda równej częstości (Equal Frequency), a w przypadku `Sepal.Width` - metoda równych przedziałów (Equal Interval).
+- Najskuteczniejszy algorytm: Najwyższe i identyczne współczynniki zgodności (diag równe 0.96 dla `Petal.Width` oraz 0.566 dla `Sepal.Width`) uzyskały metody: K-means oraz podział zadany ręcznie. Wynika stąd, że algorytm K-means potrafi bardzo dobrze odwzorować podział. Najgorzej w przypadku `Petal.Width` poradziła sobie metoda równej częstości (Equal Frequency), a w przypadku `Sepal.Width` - metoda równych przedziałów (Equal Interval).
 
-- Porównanie cech: Wyniki różnią się drastycznie między cechami. Dla najlepszej cechy (Petal.Width) zgodność klasyfikacji jest niemal perfekcyjna (96%). Z kolei dla cechy najgorszej (Sepal.Width) celność dla najlepszych metod spada do 57%.
+- Porównanie cech: Wyniki różnią się drastycznie między cechami. Dla najlepszej cechy (`Petal.Width`) zgodność klasyfikacji jest niemal perfekcyjna (96%). Z kolei dla cechy najgorszej (`Sepal.Width`) celność dla najlepszych metod spada do 57%.
 
-- Wniosek końcowy: Jakość i zdolność cechy do separacji klas są znacznie ważniejsze niż sam wybór metody dyskretyzacji. Nawet najlepszy algorytm (np. K-means) nie jest w stanie wygenerować dobrego podziału, jeśli dane wejściowe silnie się na siebie nakładają (jak w przypadku Sepal.Width).  
+- Wniosek końcowy: Jakość i zdolność cechy do separacji klas są znacznie ważniejsze niż sam wybór metody dyskretyzacji. Nawet najlepszy algorytm (np. K-means) nie jest w stanie wygenerować dobrego podziału, jeśli dane wejściowe silnie się na siebie nakładają (jak w przypadku `Sepal.Width`).  
 
 
 
@@ -1208,6 +1208,6 @@ Dla `Pclass` również widoczna jest struktura grupowa. Jest to logiczne, poniew
 klasa pasażerska bezpośrednio liczona jest przy odmienności i dodatkowo jest
 powiązana z ceną biletu (`Fare`).
 
-Pomimo, że występują mniej typowe kombinacje cech pasażerów, sama wizualizacja
+Na wykresie występują mniej typowe kombinacje cech pasażerów, ale sama wizualizacja
 MDS nie wskazuje na silne, jednoznaczne obserwacje odstające. Widoczne są raczej
 osobne skupiska lub kilka punktów na ich obrzeżach.
