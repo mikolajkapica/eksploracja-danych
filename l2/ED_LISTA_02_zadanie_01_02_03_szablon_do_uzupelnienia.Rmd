@@ -139,7 +139,7 @@ y <- runif(150)
 ### Metoda (domyślna) oparta na równych częstościach (ang. equal frequency) 
 
 - Analiza cechy najlepszej (Petal.Width):
-```{r}
+```{r, fig.cap="Dyskretyzacja Petal.Width metodą equal frequency: histogram i wykres rozrzutu z granicami przedziałów."}
 #unkty cięcia i dyskretyzacja
 breaks_pw_freq <- discretize(iris$Petal.Width, method = "frequency", breaks = 3, onlycuts = TRUE)
 pw_freq <- discretize(iris$Petal.Width, method = "frequency", breaks = 3, labels = c("small","medium", "large"))
@@ -160,7 +160,7 @@ knitr::kable(tab_pw_freq,
 
 - Analiza cechy najgorszej (Sepal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Sepal.Width metodą equal frequency: histogram i wykres rozrzutu z granicami przedziałów."}
 breaks_sw_freq <- discretize(iris$Sepal.Width, method = "frequency", breaks = 3, onlycuts = TRUE)
 sw_freq <- discretize(iris$Sepal.Width, method = "frequency", breaks = 3, labels = c("small","medium", "large"))
 
@@ -185,7 +185,7 @@ Wniosek: Metoda equal frequency wymusza podobną liczbę obserwacji w każdym pr
 
 - Analiza cechy najlepszej (Petal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Petal.Width metodą equal interval width: histogram i wykres rozrzutu z granicami przedziałów."}
 breaks_pw_int <- discretize(iris$Petal.Width, method = "interval", breaks = 3, onlycuts = TRUE)
 pw_int <- discretize(iris$Petal.Width, method = "interval", breaks = 3, labels = c("small","medium", "large"))
 
@@ -205,7 +205,7 @@ knitr::kable(tab_pw_int,
 
 - Analiza cechy najgorszej (Sepal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Sepal.Width metodą equal interval width: histogram i wykres rozrzutu z granicami przedziałów."}
 breaks_sw_int <- discretize(iris$Sepal.Width, method = "interval", breaks = 3, onlycuts = TRUE)
 sw_int <- discretize(iris$Sepal.Width, method = "interval", breaks = 3, labels = c("small","medium", "large"))
 
@@ -230,7 +230,7 @@ knitr::kable(tab_sw_int,
 
 - Analiza cechy najlepszej (Petal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Petal.Width metodą k-means: histogram i wykres rozrzutu z granicami przedziałów."}
 breaks_pw_clust <- discretize(iris$Petal.Width, method = "cluster", breaks = 3, onlycuts = TRUE)
 pw_clust <- discretize(iris$Petal.Width, method = "cluster", breaks = 3, labels = c("small","medium", "large"))
 
@@ -250,7 +250,7 @@ knitr::kable(tab_pw_clust,
 
 - Analiza cechy najgorszej (Sepal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Sepal.Width metodą k-means: histogram i wykres rozrzutu z granicami przedziałów."}
 breaks_sw_clust <- discretize(iris$Sepal.Width, method = "cluster", breaks = 3, onlycuts = TRUE)
 sw_clust <- discretize(iris$Sepal.Width, method = "cluster", breaks = 3, labels = c("small","medium", "large"))
 
@@ -276,7 +276,7 @@ knitr::kable(tab_sw_clust,
 
 - Analiza cechy najlepszej (Petal.Width):
 
-```{r}
+```{r, fig.cap="Dyskretyzacja Petal.Width metodą fixed: histogram i wykres rozrzutu z ręcznie zadanymi granicami przedziałów."}
 #Granice ustalam sobie na podstawie wykresów z podpunktu b)
 breaks_pw_user <- c(-Inf, 0.8, 1.75, Inf)
 pw_fixed <- discretize(iris$Petal.Width, method = "fixed", 
@@ -302,7 +302,7 @@ knitr::kable(table(Zdyskretyzowana = pw_fixed, Prawdziwa = iris$Species),
 ```
 
 - Analiza cechy najgorszej (Sepal.Width):
-```{r}
+```{r, fig.cap="Dyskretyzacja Sepal.Width metodą fixed: histogram i wykres rozrzutu z ręcznie zadanymi granicami przedziałów."}
 breaks_sw_user <- c(-Inf, 2.8, 3.3, Inf)
 sw_fixed <- discretize(iris$Sepal.Width, method = "fixed", 
                       breaks = breaks_sw_user, labels = c("small","medium", "large"))
@@ -499,7 +499,7 @@ standaryzację.
 
 
 Sprawdzamy również konieczność standaryzacji danych na podstawie wykresów pudełkowych.
-```{r}
+```{r, fig.cap="Wykresy pudełkowe cech ilościowych przed standaryzacją."}
 # wykresy pudełkowe przed standaryzacją
 par(mar = c(8, 4, 2, 1))
 boxplot(dane.2.num,
@@ -513,7 +513,7 @@ poziomem wartości oraz rozrzutem. Oznacza to, że cechy o większej wariancji
 mogłyby mieć zbyt duży wpływ na wynik PCA. Z tego powodu w dalszej analizie
 stosujemy standaryzację danych.
 
-```{r}
+```{r, fig.cap="Wykresy pudełkowe cech ilościowych po standaryzacji."}
 # wykresy pudełkowe po standaryzacji
 dane.2.num.scaled <- scale(dane.2.num)
 boxplot(dane.2.num.scaled,
@@ -541,7 +541,7 @@ Analizując wektory ładunków (loadings) dla kilku pierwszych składowych
 
 
 
-```{r}
+```{r, fig.cap="Rozrzut wartości kolejnych składowych głównych PCA."}
 # Wyznaczanie składowych głównych
 dane.pca <- prcomp(dane.2.num, retx = TRUE, center = TRUE, scale. = TRUE)
 
@@ -679,7 +679,7 @@ PC1 wyjaśnia ok. 29,8% wariancji, PC2 ok. 15,2%, a PC3 ok. 12,2%. Do
 wyjaśnienia 80% zmienności potrzeba 7 składowych, a do 90% - 10 składowych.
 
 
-```{r}
+```{r, fig.cap="Skumulowana frakcja wariancji wyjaśnionej przez kolejne składowe główne."}
 # wykres słupkowy skumulowanej wariancji z naniesionymi poziomem 80%
 barplot(cumulative.variances,
         names.arg = paste0("PC", seq_along(cumulative.variances)),
@@ -706,7 +706,7 @@ i 90% osiągamy odpowiednio przy 7. i 10. składowej.
 
 ## podpunkt e: Wizualizacja danych wielowymiarowych
 
-```{r, echo=FALSE, fig.width=10, fig.height=6, out.extra='angle=-90', out.width='0.90\\textheight'}
+```{r, echo=FALSE, fig.width=10, fig.height=6, out.extra='angle=-90', out.width='0.90\\textheight', fig.cap="Miasta w przestrzeni dwóch pierwszych składowych głównych PCA, pokolorowane według kontynentu."}
 # Kolory (mamy 6 etykiet kontynentów)
 # length(unique(UA_Country))# jest 135 państw
 # length(unique(UA_Continent))# jest 6 kontynentów
@@ -744,7 +744,7 @@ Można zauważyć, że po lewej stronie znajdują się głównie miasta dobrze r
 Podobnie miasta o wyraźnym profilu startupowo-kapitałowym i kulturalnym (Delhi, Los Angeles, Nowy Jork, Szanghaj) częściej leżą niżej, co sugeruje, że ujemne PC2
 odpowiada większej aktywności w tym obszarze.
 
-```{r, echo=FALSE, fig.width=11, fig.height=7.5, out.extra='angle=-90', out.width='0.90\\textheight'}
+```{r, echo=FALSE, fig.width=11, fig.height=7.5, out.extra='angle=-90', out.width='0.90\\textheight', fig.cap="Miasta w przestrzeni trzech pierwszych składowych głównych PCA, pokolorowane według kontynentu."}
 library(scatterplot3d)
 
 pc3 <- dane.pca$x[, 3]
@@ -782,7 +782,7 @@ między poszczególnymi zmiennymi. Wnioski otrzymane na podstawie analizy
 dwuwykresu porównaj z wnioskami opartymi na macierzy korelacji (funkcja cor()). 
 -->
 
-```{r}
+```{r, fig.cap=c("Biplot PCA z domyślnymi etykietami obserwacji i zmiennych.", "Biplot PCA z etykietami zmiennych.", "Biplot PCA z obserwacjami pokolorowanymi według kontynentu.", "Biplot PCA z elipsami koncentracji dla kontynentów.", "Macierz korelacji cech ilościowych wykorzystanych w analizie PCA.")}
 # dwuwykres (biplot) przy pomocy pakietu factoextra
 library(factoextra)
 library(corrplot)
@@ -1086,7 +1086,7 @@ knitr::kable(mds_comparison,
 
 Chociaż wariant `titanic_age_complete` daje nieco najniższy STRESS, usuwa około `r round(100 * (nrow(titanic_train) - nrow(titanic_age_complete)) / nrow(titanic_train), 0)`\% obserwacji. Dlatego do dalszej wizualizacji wybieramy wariant z imputacją, ponieważ zachowuje prawie cały zbiór danych.
 
-```{r, fig.width=6, fig.height=4}
+```{r, fig.width=6, fig.height=4, fig.cap="Diagram Sheparda dla odwzorowania MDS danych Titanic po imputacji wieku."}
 # Do dalszych wykresów wybieramy wariant z imputacją wieku.
 selected_mds <- mds_results$imputed # można zmienić na inny wariant
 mds_df <- selected_mds$mds_df
@@ -1138,7 +1138,7 @@ Czy w tym przypadku widoczne na wykresie grupy (skupiska) są powiązane
 z wartościami tych zmiennych?
 -->
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=5, fig.cap="MDS dla danych Titanic pokolorowane według informacji o przeżyciu."}
 survived_colors <- c("nie przeżył" = "tomato3", "przeżył" = "steelblue3")
 
 plot(mds_df$MDS1, mds_df$MDS2,
@@ -1157,7 +1157,7 @@ które przeżyły lub nie przeżyły. Oznacza to, że przeżycie było częścio
 powiązane z profilem pasażera, ale nie tworzy samo w sobie idealnie oddzielnych
 grup w przestrzeni MDS.
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=5, fig.cap="Trójwymiarowe odwzorowanie MDS danych Titanic pokolorowane według informacji o przeżyciu."}
 library(scatterplot3d)
 
 selected_mds_3d <- run_mds_analysis(titanic_imputed, k = 3)
@@ -1177,7 +1177,7 @@ nieco mniejszą utratą informacji niż wykres 2D. Także tutaj nie widać jedna
 idealnego rozdzielenia pasażerów według `Survived`, co potwierdza, że informacja
 o przeżyciu nie można wywnioskować bezpośrednio z różnic pomiędzy pasażerami.
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=5, fig.cap="Dwuwymiarowe odwzorowanie MDS danych Titanic pokolorowane według płci pasażera."}
 sex_colors <- c("female" = "violetred3", "male" = "darkcyan")
 
 plot(mds_df$MDS1, mds_df$MDS2,
@@ -1193,7 +1193,7 @@ grid()
 Podział względem `Sex` jest wyraźniejszy niż względem `Survived`, ponieważ płeć
 jest jedną ze zmiennych wejściowych użytych przy liczeniu odmienności Gowera.
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=5, fig.cap="Dwuwymiarowe odwzorowanie MDS danych Titanic pokolorowane według klasy pasażerskiej."}
 pclass_colors <- c("1" = "goldenrod2", "2" = "seagreen3", "3" = "gray40")
 
 plot(mds_df$MDS1, mds_df$MDS2,
@@ -1210,7 +1210,7 @@ Dla `Pclass` również widoczna jest struktura grupowa. Jest to logiczne, poniew
 klasa pasażerska bezpośrednio liczona jest przy odmienności i dodatkowo jest
 powiązana z ceną biletu (`Fare`).
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=5, fig.cap="Potencjalne obserwacje odstające w dwuwymiarowej przestrzeni MDS danych Titanic."}
 distance_from_center <- sqrt((mds_df$MDS1 - median(mds_df$MDS1))^2 +
                                (mds_df$MDS2 - median(mds_df$MDS2))^2)
 outlier_threshold <- quantile(distance_from_center, 0.99)
