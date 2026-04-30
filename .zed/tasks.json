@@ -3,11 +3,11 @@
   {
     "label": "Compile l1 Rmd to PDF",
     "cwd": "${ZED_WORKTREE_ROOT}/l1",
-    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_01_etap-01-02_szablon_do_uzupelnienia.Rmd')\"",
+    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_01_etap-01-02_szablon_do_uzupelnienia.Rmd', output_format = 'pdf_document')\"",
   },
   {
     "label": "Compile l2 Rmd to PDF",
     "cwd": "${ZED_WORKTREE_ROOT}/l2",
-    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_02_zadanie_01_02_03_szablon_do_uzupelnienia.Rmd')\"",
+    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_02_zadanie_01_02_03_szablon_do_uzupelnienia.Rmd', output_format = 'pdf_document')\"",
   },
 ]
