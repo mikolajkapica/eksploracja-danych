@@ -68,7 +68,16 @@ dane <- data(iris)
 
 - Czy zbiór danych jest zbalansowany?
 
-  - `r table(iris$Species)` Tak zbiór jest zbalansowany
+```{r tabela-liczebnosci-gatunkow-iris, echo=FALSE}
+liczebnosci_gatunkow <- table(iris$Species)
+knitr::kable(data.frame(
+  Gatunek = names(liczebnosci_gatunkow),
+  Liczebność = as.integer(liczebnosci_gatunkow),
+  check.names = FALSE
+), caption = "Liczebności gatunków w zbiorze iris")
+```
+
+  - Tak, zbiór jest zbalansowany.
 
 - Czy są braki w danych? Czy są duplikaty?
 
@@ -82,7 +91,7 @@ dane <- data(iris)
 
 - Czy coś szczególnego widać np. w uporządkowaniu tych danych?
 
-  - Tak widzimy, że mamy po 50 gatunków kwiatów: `r table(iris$Species)`
+  - Tak, w danych jest po 50 obserwacji każdego gatunku, co pokazuje powyższa tabela.
 
 
 ## Podpunkt (b): wybór cech
@@ -146,8 +155,6 @@ par(mfrow=c(1,1))
 
 tab_pw_freq <- table(pw_freq, iris$Species)
 knitr::kable(tab_pw_freq,
-             format = "latex",
-             booktabs = TRUE,
              caption = "Tabela kontyngencji: dyskretyzacja Petal.Width metodą equal frequency względem gatunku")
 ```
 
@@ -167,7 +174,8 @@ legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure
 par(mfrow=c(1,1))
 
 tab_sw_freq <- table(sw_freq, iris$Species)
-tab_sw_freq
+knitr::kable(tab_sw_freq,
+             caption = "Tabela kontyngencji: dyskretyzacja Sepal.Width metodą equal frequency względem gatunku")
 ```
 
 Wniosek: Metoda equal frequency wymusza podobną liczbę obserwacji w każdym przedziale, co widać po liniach odcięcia grupujących gęste "zbiory". W przypadku naturalnie oddzielonych gatunków (Petal.Width) prowadzi to do błędu i sztucznego rozdzielenia klasy pierwszej oraz zlania się klasy drugiej z trzecią.
@@ -191,7 +199,8 @@ legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure
 par(mfrow=c(1,1))
 
 tab_pw_int <- table(pw_int, iris$Species)
-tab_pw_int
+knitr::kable(tab_pw_int,
+             caption = "Tabela kontyngencji: dyskretyzacja Petal.Width metodą equal interval width względem gatunku")
 ```
 
 - Analiza cechy najgorszej (Sepal.Width):
@@ -210,7 +219,8 @@ legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure
 par(mfrow=c(1,1))
 
 tab_sw_int <- table(sw_int, iris$Species)
-tab_sw_int
+knitr::kable(tab_sw_int,
+             caption = "Tabela kontyngencji: dyskretyzacja Sepal.Width metodą equal interval width względem gatunku")
 ```
 
 - Wniosek: Podział na przedziały o stałej szerokości nie uwzględnia gęstości danych. Dla cechy Petal.Width podział wypada nieco lepiej niż w equal frequency, jednak dla gęstej cechy Sepal.Width ogromna większość obserwacji ląduje w środkowej części, przez co skrajne przedziały są niemal puste.
@@ -234,7 +244,8 @@ legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure
 par(mfrow=c(1,1))
 
 tab_pw_clust <- table(pw_clust, iris$Species)
-tab_pw_clust
+knitr::kable(tab_pw_clust,
+             caption = "Tabela kontyngencji: dyskretyzacja Petal.Width metodą k-means względem gatunku")
 ```
 
 - Analiza cechy najgorszej (Sepal.Width):
@@ -253,7 +264,8 @@ legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure
 par(mfrow=c(1,1))
 
 tab_sw_clust <- table(sw_clust, iris$Species)
-tab_sw_clust
+knitr::kable(tab_sw_clust,
+             caption = "Tabela kontyngencji: dyskretyzacja Sepal.Width metodą k-means względem gatunku")
 ```
 
 
@@ -270,7 +282,11 @@ breaks_pw_user <- c(-Inf, 0.8, 1.75, Inf)
 pw_fixed <- discretize(iris$Petal.Width, method = "fixed", 
                       breaks = breaks_pw_user, labels = c("small","medium", "large"))
 
-table(pw_fixed)
+knitr::kable(data.frame(
+  Przedział = names(table(pw_fixed)),
+  Liczebność = as.integer(table(pw_fixed)),
+  check.names = FALSE
+), caption = "Liczebność przedziałów: dyskretyzacja Petal.Width metodą fixed")
 
 par(mfrow=c(1,2))
 hist(iris$Petal.Width, breaks = 10, main = "Metoda: fixed (Petal.Width)")
@@ -281,7 +297,8 @@ abline(v = breaks_pw_user, col = "red", lwd=3)
 legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
 par(mfrow=c(1,1))
 
-table(Zdyskretyzowana = pw_fixed, Prawdziwa = iris$Species)
+knitr::kable(table(Zdyskretyzowana = pw_fixed, Prawdziwa = iris$Species),
+             caption = "Tabela kontyngencji: dyskretyzacja Petal.Width metodą fixed względem gatunku")
 ```
 
 - Analiza cechy najgorszej (Sepal.Width):
@@ -290,7 +307,11 @@ breaks_sw_user <- c(-Inf, 2.8, 3.3, Inf)
 sw_fixed <- discretize(iris$Sepal.Width, method = "fixed", 
                       breaks = breaks_sw_user, labels = c("small","medium", "large"))
 
-table(sw_fixed)
+knitr::kable(data.frame(
+  Przedział = names(table(sw_fixed)),
+  Liczebność = as.integer(table(sw_fixed)),
+  check.names = FALSE
+), caption = "Liczebność przedziałów: dyskretyzacja Sepal.Width metodą fixed")
 
 par(mfrow=c(1,2))
 hist(iris$Sepal.Width, breaks = 10, main = "Metoda: fixed (Sepal.Width)")
@@ -301,7 +322,8 @@ abline(v = breaks_sw_user, col = "red", lwd=3)
 legend(x = "topright", legend=levels(iris$Species), col=1:3, pch=21, bg = "azure")
 par(mfrow=c(1,1))
 
-table(Zdyskretyzowana = sw_fixed, Prawdziwa = iris$Species)
+knitr::kable(table(Zdyskretyzowana = sw_fixed, Prawdziwa = iris$Species),
+             caption = "Tabela kontyngencji: dyskretyzacja Sepal.Width metodą fixed względem gatunku")
 ```
 
 - Wniosek: Granice dyskretyzacji zostały tu wybrane "na oko" na podstawie analizy z wykresu. Gdy mamy cechę o wysokiej zdolności dyskryminacji (Petal.Width) osiągamy niemal idealne wydzielenie klas, co wyraźnie widać na wykresie punktowym. Z kolei przy najgorszej (Sepal.Width), z powodu nakładania się na siebie gatunków, żadne własne granice nie są w stanie zapewnić dobrego podziału klas.
@@ -462,7 +484,12 @@ Wyznaczamy wariancje poszczególnych cech.
 ```{r}
 # wariancje poszczególnych cech
 wariancje <- sort(sapply(dane.2.num, var, na.rm = TRUE), decreasing = TRUE)
-wariancje
+knitr::kable(data.frame(
+  Cecha = names(wariancje),
+  Wariancja = as.numeric(wariancje),
+  check.names = FALSE
+), digits = 3,
+caption = "Wariancje cech ilościowych")
 
 ```
 
@@ -575,23 +602,27 @@ Analizujemy wektory ładunków dla kilku pierwszych składowych głównych.
 ```{r}
 # wektory ładunków (loadings) dla PC1, PC2, PC3
 loadings <- dane.pca$rotation[, 1:3]
-loadings
-
+knitr::kable(loadings,
+             digits = 3,
+             caption = "Ładunki zmiennych dla pierwszych trzech składowych głównych")
 
 sorted_absolutetly <- function(x) {
   x[order(abs(x), decreasing = TRUE)]
 }
 
-# PC1
-sorted_absolutetly(loadings[, "PC1"])[1:3]
+# Najważniejsze ładunki dla PC1, PC2 i PC3
+najwazniejsze_ladunki <- rbind(
+  data.frame(PC = "PC1", Cecha = names(sorted_absolutetly(loadings[, "PC1"])[1:3]),
+             Ładunek = as.numeric(sorted_absolutetly(loadings[, "PC1"])[1:3])),
+  data.frame(PC = "PC2", Cecha = names(sorted_absolutetly(loadings[, "PC2"])[1:3]),
+             Ładunek = as.numeric(sorted_absolutetly(loadings[, "PC2"])[1:3])),
+  data.frame(PC = "PC3", Cecha = names(sorted_absolutetly(loadings[, "PC3"])[1:10]),
+             Ładunek = as.numeric(sorted_absolutetly(loadings[, "PC3"])[1:10]))
+)
 
-
-# PC2
-sorted_absolutetly(loadings[, "PC2"])[1:3]
-
-
-# PC3
-sorted_absolutetly(loadings[, "PC3"])[1:10]
+knitr::kable(najwazniejsze_ladunki,
+             digits = 3,
+             caption = "Najważniejsze ładunki według wartości bezwzględnej")
 
 ```
 
@@ -921,7 +952,12 @@ dane.3$Pclass <- factor(dane.3$Pclass,
 dane.3$Sex <- factor(dane.3$Sex)
 dane.3$Embarked <- factor(dane.3$Embarked)
 
-str(dane.3)
+knitr::kable(data.frame(
+  Zmienna = names(dane.3),
+  Typ = sapply(dane.3, function(x) class(x)[1]),
+  Braki = colSums(is.na(dane.3)),
+  check.names = FALSE
+), caption = "Struktura przygotowanych danych Titanic")
 ```
 
 ```{r}
@@ -1043,7 +1079,9 @@ mds_comparison <- data.frame(
                              function(result) result$normalized_stress)
 )
 
-mds_comparison
+knitr::kable(mds_comparison,
+             digits = 4,
+             caption = "Porównanie wariantów przygotowania danych dla MDS")
 ```
 
 Chociaż wariant `titanic_age_complete` daje nieco najniższy STRESS, usuwa około `r round(100 * (nrow(titanic_train) - nrow(titanic_age_complete)) / nrow(titanic_train), 0)`\% obserwacji. Dlatego do dalszej wizualizacji wybieramy wariant z imputacją, ponieważ zachowuje prawie cały zbiór danych.
