@@ -445,6 +445,9 @@ ilosciowe <- which(sapply(dane.2, is.numeric))
 dane.2.num <- dane.2[, ilosciowe]
 ```
 
+PCA wykonujemy tylko na cechach ilościowych. Zmienne jakościowe zostawiamy do
+opisu i kolorowania wyników.
+
 
 
 
@@ -455,6 +458,10 @@ wariancje <- sort(sapply(dane.2.num, var, na.rm = TRUE), decreasing = TRUE)
 wariancje
 
 ```
+
+Największą zmienność mają m.in. `Venture Capital`, `Cost of Living` i
+`Housing`. Różne wariancje sugerują, że przed PCA warto zastosować
+standaryzację.
 
 
 Sprawdzamy również konieczność standaryzacji danych na podstawie wykresów pudełkowych.
@@ -483,6 +490,9 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 ```
 
+Po standaryzacji zmienne mają porównywalną skalę, więc żadna cecha nie dominuje
+PCA tylko przez większy rozrzut.
+
 ## podpunkt c: Wyznaczenie składowych głównych
 <!--
 Wyznacz składowe główne i porównaj ich rozrzut wykorzystując wykresy pudełkowe.
@@ -499,7 +509,7 @@ Analizując wektory ładunków (loadings) dla kilku pierwszych składowych
 
 ```{r}
 # Wyznaczanie składowych głównych
-dane.pca <- prcomp(dane.2.num, center = TRUE, scale. = TRUE)
+dane.pca <- prcomp(dane.2.num, retx = TRUE, center = TRUE, scale. = TRUE)
 
 # porównanie rozrzutu składowych głównych za pomocą wykresów pudełkowych
 boxplot(dane.pca$x,
@@ -510,6 +520,9 @@ boxplot(dane.pca$x,
 
 ```
 
+PCA tworzy nowe zmienne, czyli składowe główne. Największy rozrzut ma PC1, a
+kolejne składowe niosą coraz mniej informacji.
+
 
 Analizujemy wektory ładunków dla kilku pierwszych składowych głównych.
 ```{r}
@@ -519,17 +532,23 @@ loadings
 
 
 # PC1
-sort(loadings[, "PC1"], decreasing = TRUE)
+sort(abs(loadings[, "PC1"]), decreasing = TRUE)[1:3]
 
 
 # PC2
-sort(loadings[, "PC2"], decreasing = TRUE)
+sort(abs(loadings[, "PC2"]), decreasing = TRUE)[1:3]
 
 
 # PC3
-sort(loadings[, "PC3"], decreasing = TRUE)
+sort(abs(loadings[, "PC3"]), decreasing = TRUE)[1:3]
 
 ```
+
+Po posortowaniu wartości bezwzględnych ładunków widać, które cechy najmocniej
+wpływają na daną składową. PC1 można opisać jako wymiar warunków rozwoju miasta,
+PC2 jako wymiar aktywności startupowo-kapitałowej i kulturalnej, a PC3 jako
+wymiar mobilności i bezpieczeństwa. Znak ładunku określa kierunek zależności,
+ale nie siłę wpływu.
 
 
 
@@ -571,6 +590,9 @@ which(cumulative.variances >= 0.80)[1]
 which(cumulative.variances >= 0.90)[1]
 ```
 
+PC1 wyjaśnia ok. 29,8% wariancji, PC2 ok. 15,2%, a PC3 ok. 12,2%. Do
+wyjaśnienia 80% zmienności potrzeba 7 składowych, a do 90% - 10 składowych.
+
 
 ```{r}
 # wykres słupkowy skumulowanej wariancji z naniesionymi poziomem 80%
@@ -591,6 +613,9 @@ legend("bottomright",
 
 
 ```
+
+Wykres potwierdza, że kolejne składowe dodają coraz mniej informacji. Progi 80%
+i 90% osiągamy odpowiednio przy 7. i 10. składowej.
 
 
 
@@ -623,6 +648,16 @@ legend("bottomright", legend = levels(UA_Continent), pch = 16, cex = 0.6,
        col = kolory, bty = "n")
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
+
+Wykres pokazuje miasta w układzie dwóch pierwszych składowych: PC1 na osi
+poziomej i PC2 na osi pionowej. Miasta europejskie, północnoamerykańskie i z
+Oceanii częściej leżą po lewej stronie wykresu, natomiast miasta azjatyckie,
+południowoamerykańskie i afrykańskie częściej przesuwają się w prawo.
+
+Można zauważyć, że po lewej stronie znajdują się głównie miasta dobrze rozwinięte (Zurychu, Monachium, Boston), zatem ujemne PC1 można ostrożnie interpretować jako silniejsze warunki rozwoju miasta. 
+
+Podobnie miasta o wyraźnym profilu startupowo-kapitałowym i kulturalnym (Delhi, Los Angeles, Nowy Jork, Szanghaj) częściej leżą niżej, co sugeruje, że ujemne PC2
+odpowiada większej aktywności w tym obszarze.
 
 
 
@@ -658,6 +693,10 @@ corrplot(correlations, method = "color", type = "upper", tl.cex = 0.7)
 
 ```
 
+Biplot pokazuje kierunki zmiennych: podobne kierunki oznaczają dodatnią
+korelację, przeciwne - ujemną. Macierz korelacji potwierdza m.in. silne związki
+`Startups` z `Venture Capital` oraz `Cost of Living` z `Housing`.
+
 
 
 
@@ -674,7 +713,11 @@ Czy (nie)zastosowanie standaryzacji miało istotny wpływ na otrzymane wyniki
 i wnioski? 
 -->
 
-Do samodzielnego wykonania.
+PCA pozwala opisać dane mniejszą liczbą wymiarów. Pierwsze dwie składowe
+wyjaśniają ok. 45% zmienności, a pierwsze trzy ok. 57%; do 80% potrzeba 7
+składowych. Standaryzacja była potrzebna, bo cechy miały różne wariancje.
+Najsilniej powiązane są m.in. `Startups` z `Venture Capital`, a miasta nie
+dzielą się idealnie według kontynentów.
 
 
 
