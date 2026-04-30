@@ -392,7 +392,7 @@ dane.2$UA_Continent <- as.factor(dane.2$UA_Continent)
 attach(dane.2)
 ```
 
-Zbiór danych "City Quality of Life Dataset" zawiera wyliczone wskaźniki różnych kategorii dla obszarów miejskich, zagregowane z wielu źródeł danych, przez nieistniejącą już organizację "Teleport". Plik `csv` zawiera `r ncol(dane.2)` zmiennych i `r nrow(dane.2)` obserwacji.
+Zbiór danych "City Quality of Life Dataset" zawiera wyliczone wskaźniki różnych kategorii dla obszarów miejskich, zagregowane z wielu źródeł danych przez nieistniejącą już organizację Teleport. Po usunięciu kolumny identyfikacyjnej plik `csv` zawiera `r nrow(dane.2)` obserwacji oraz `r ncol(dane.2)` zmiennych: `r sum(sapply(dane.2, is.numeric))` ilościowych i `r sum(sapply(dane.2, function(x) is.factor(x) || is.character(x)))` jakościowych.
 
 Poniżej przedstawiono szczegółowe opisy poszczególnych cech w zbiorze danych:
 
