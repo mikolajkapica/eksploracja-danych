@@ -587,10 +587,13 @@ sort(abs(loadings[, "PC3"]), decreasing = TRUE)[1:3]
 Po posortowaniu wartości bezwzględnych ładunków widać, które cechy najmocniej
 wpływają na daną składową. PC1 można opisać jako wymiar warunków rozwoju miasta,
 PC2 jako wymiar aktywności startupowo-kapitałowej i kulturalnej, a PC3 jako
-wymiar mobilności i bezpieczeństwa. Znak ładunku określa kierunek zależności,
-ale nie siłę wpływu.
+wymiar infrastruktury komunikacji miejskiej. Znak wartości ładuku określa
+kierunek zależności, ale nie siłę wpływu.
 
-
+Po analizie kierunku ładunków widać też, że PC3 ma przede wszysstkim brdzo
+dodatnią wartość dla `Commute`, a ujemną wartość dla `Economy`. Z tego powodu
+miasta jak np. Palo Alto trafiają z bardzo niskimi wartościami PC3, a
+europejskie metropolia jak np. Wiedeń z bardzo wysokimi.
 
 
 ## podpunkt d: Zmienność odpowiadająca poszczególnym składowym
@@ -699,8 +702,35 @@ Można zauważyć, że po lewej stronie znajdują się głównie miasta dobrze r
 Podobnie miasta o wyraźnym profilu startupowo-kapitałowym i kulturalnym (Delhi, Los Angeles, Nowy Jork, Szanghaj) częściej leżą niżej, co sugeruje, że ujemne PC2
 odpowiada większej aktywności w tym obszarze.
 
+```{r, echo=FALSE, fig.width=11, fig.height=7.5, out.extra='angle=-90', out.width='0.90\\textheight'}
+library(scatterplot3d)
+
+pc3 <- dane.pca$x[, 3]
+
+wykres.3d <- scatterplot3d(pc1, pc2, pc3,
+                           color = kolory[as.numeric(UA_Continent)],
+                           pch = 16,
+                           angle = 20,
+                           scale.y = 0.7,
+                           xlab = "PC1",
+                           ylab = "PC2",
+                           zlab = "PC3",
+                           main = "Miasta w przestrzeni PC1-PC2-PC3",
+                           type = "h",
+                           lty.hplot = "dotted")
+
+punkty.3d <- wykres.3d$xyz.convert(pc1, pc2, pc3)
+text(punkty.3d$x, punkty.3d$y,
+     labels = UA_Name,
+     cex = 0.35, pos = 4)
+
+legend("topright", legend = levels(UA_Continent), pch = 16, cex = 0.7,
+       col = kolory, bty = "n")
+```
 
 
+Wykres 3D dodaje PC3, dzięki czemu lepiej widać różnice między dobrze skomunikowanymi
+miastami europejskimi, a tymi gorzej z ameryki północnej (np. USA).
 
 
 ## podpunkt f: Korelacja zmiennych
