@@ -949,13 +949,17 @@ dane.3$Pclass <- factor(dane.3$Pclass,
                         ordered = TRUE)
 dane.3$Sex <- factor(dane.3$Sex)
 dane.3$Embarked <- factor(dane.3$Embarked)
-
-knitr::kable(data.frame(
+struktura_titanic <- data.frame(
   Zmienna = names(dane.3),
-  Typ = sapply(dane.3, function(x) class(x)[1]),
-  Braki = colSums(is.na(dane.3)),
-  check.names = FALSE
-), caption = "Struktura przygotowanych danych Titanic")
+  Typ = unname(sapply(dane.3, function(x) class(x)[1])),
+  Braki = unname(colSums(is.na(dane.3))),
+  check.names = FALSE,
+  row.names = NULL
+)
+
+knitr::kable(struktura_titanic,
+             row.names = FALSE,
+             caption = "Struktura przygotowanych danych Titanic")
 ```
 
 ```{r}
