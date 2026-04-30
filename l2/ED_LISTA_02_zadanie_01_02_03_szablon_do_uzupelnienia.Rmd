@@ -1,6 +1,6 @@
 ---
 title: "Sprawozdanie z listy 2"
-author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+author: "Jan Bryłka (287379), Mikołaj Kapica (272729)"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -849,6 +849,9 @@ Do zrobienia:
 - opisać zbiór danych (liczba zmiennych, liczba obserwacji, typy zmiennych 
                        i ich zakres/liczba poziomów)
 - krótko opisać poszczególne zmienne (jak w sprawozdaniu do listy 1)
+
+Opisy danych:
+https://cran.r-project.org/web/packages/titanic/refman/titanic.html
 
 
 ## podpunkt b : Przygotowanie danych
