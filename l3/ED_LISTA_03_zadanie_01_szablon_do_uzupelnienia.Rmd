@@ -1,0 +1,103 @@
+---
+title: "Sprawozdanie z listy 3"
+subtitle: "Eksploracja danych"
+author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    fig_caption: yes
+    fig_width: 6.5
+    fig_height: 5
+    number_sections: true
+header-includes:
+   - \usepackage[OT4]{polski}
+   - \usepackage[utf8]{inputenc}
+   - \usepackage{graphicx}
+   - \usepackage{float}
+fontsize: 12pt
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
+
+library(xtable) # do tworzenia tabel texowych w pdf
+library(arules) # zawiera funkcję discretize() do zadania 1
+library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
+```
+
+
+# Zadanie 1: Klasyfikacja na bazie modelu regresji liniowej.
+
+## Podpunkt (a): Analizowane dane.
+<!--
+Ramka danych iris{pakiet datasets}.
+Mamy K = 3 klasy oraz p = 4 zmienne objaśniające X = (PL, PW, SL, SW).
+-->
+
+
+
+
+
+
+## Podpunkt (b): Podział danych na zbiór uczący i testowy
+<!--
+Podziel losowo dane na część uczącą (ang. learning set)
+i testową (ang. test set), np. w proporcji:
+2/3 - zbiór ucz¡cy, 1/3 - zbiór testowy.
+-->
+
+
+
+
+
+
+
+
+
+## Podpunkt (c): Konstrukcja klasyfikatora i wyznaczenie prognoz
+<!--
+Zastosuj model regresji liniowej do konstrukcji klasyfikatora na podstawie
+danych uczących i wyznacz prognozowane etykietki klas dla przypadków
+ze zbioru uczącego oraz przypadków ze zbioru testowego.
+
+Uwaga: Proszę pamiętać o poprawnym kodowaniu klas przy użyciu
+       zmiennych binarnych (ang. class indicators)!
+
+-->
+
+
+
+
+
+
+
+
+
+## Podpunkt (d): Ocena jakości modelu
+<!--
+Wyznacz macierz pomyek (ang. confusion matrix) oraz błąd klasyfikacji
+na zbiorze uczącym oraz zbiorze testowym. Spróbuj zilustrować/zbadać
+czy w tym przypadku obserwujemy zjawisko maskowania klas, o którym była
+mowa na wykładzie.
+-->
+
+
+
+
+
+
+
+
+## Podpunkt (e) Budowa modelu liniowego dla rozszerzonej przestrzeni cech
+
+<!--
+Powtórz konstrukcję modelu i ocenę jego dokładności (kroki c)-d)), tym razem
+budując model regresji po uzupełnieniu wyjściowych cech o składniki
+wielomianowe stopnia 2 (tzn.: PL^2, PW^2, SL^2, SW^2, PLPW, PLSW, PLSL, PWSL,
+PWSW, SLSW). Porównaj dokładność klasyfikacji dla obu przypadków i zinterpretuj
+otrzymane wyniki.
+-->
