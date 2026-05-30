@@ -11,13 +11,12 @@ output:
     fig_height: 5
     number_sections: true
 header-includes:
-   - \usepackage[OT4]{polski}
-   - \usepackage[utf8]{inputenc}
-   - \usepackage{graphicx}
-   - \usepackage{float}
+  - \usepackage[OT4]{polski}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage{graphicx}
+  - \usepackage{float}
 fontsize: 12pt
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -27,38 +26,79 @@ knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
 library(xtable) # do tworzenia tabel texowych w pdf
 library(arules) # zawiera funkcję discretize() do zadania 1
 library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
-```
 
+format_number <- function(x, digits = 3) {
+  round(x, digits)
+}
+
+as_report_table <- function(x, digits = 3) {
+  data.frame(lapply(as.data.frame(x), function(col) {
+    if (is.numeric(col)) format_number(col, digits) else col
+  }), check.names = FALSE)
+}
+
+set.seed(42)
+```
 
 # Zadanie 1: Klasyfikacja na bazie modelu regresji liniowej.
 
 ## Podpunkt (a): Analizowane dane.
+
 <!--
 Ramka danych iris{pakiet datasets}.
 Mamy K = 3 klasy oraz p = 4 zmienne objaśniające X = (PL, PW, SL, SW).
 -->
 
+Wczytujemy dane _iris_ z pakietu _datasets_.
 
+```{r wczytanie-danych}
+data(iris)
+knitr::kable(head(iris), caption = "Pierwsze obserwacje zbioru iris.")
+```
 
+Na poprzedniej liście korzystaliśmy z tego samego zbioru danych. Zawiera on
+wyniki pomiarów uzyskanych dla trzech gatunków irysów (tj. setosa, versicolor i
+virginica). Pomiary dotyczą długości oraz szerokości dwóch różnych części kwiatu
+i działki kielicha (ang. sepal) oraz płatka (ang. petal). Mamy `r nrow(iris)`
+obserwacji i `r ncol(iris)` cech (w tym ich gatunek). Zbiór danych jest
+zbalansowany (każdy gatunek ma tyle samo obserwacji) i nie zawiera braków.
 
+Dla ułatwienia zmieniamy nazwy cech na krótsze:
 
+```{r zmiana-nazw-cech}
+names(iris) <- c("SL","SW","PL","PW","Spec")
+```
 
 ## Podpunkt (b): Podział danych na zbiór uczący i testowy
+
 <!--
 Podziel losowo dane na część uczącą (ang. learning set)
 i testową (ang. test set), np. w proporcji:
 2/3 - zbiór ucz¡cy, 1/3 - zbiór testowy.
 -->
 
+```{r podzial-danych}
+n <- nrow(iris)
+idx <- sample(1:n, size = 1/3 * n)
+test <- iris[idx, ]
+learning <- iris[-idx, ]
 
-
-
-
-
-
-
+# w obu zbiorach pozostają wszystkie trzy klasy
+species <- levels(iris$Spec)
+quantity_split <- data.frame(
+  Gatunek = species,
+  `Zbiór uczący` = as.integer(table(learning$Spec)[species]),
+  `Zbiór testowy` = as.integer(table(test$Spec)[species]),
+  check.names = FALSE
+)
+knitr::kable(
+  quantity_split,
+  caption = "Liczebności klas po podziale danych."
+)
+```
 
 ## Podpunkt (c): Konstrukcja klasyfikatora i wyznaczenie prognoz
+
 <!--
 Zastosuj model regresji liniowej do konstrukcji klasyfikatora na podstawie
 danych uczących i wyznacz prognozowane etykietki klas dla przypadków
@@ -66,31 +106,167 @@ ze zbioru uczącego oraz przypadków ze zbioru testowego.
 
 Uwaga: Proszę pamiętać o poprawnym kodowaniu klas przy użyciu
        zmiennych binarnych (ang. class indicators)!
-
 -->
 
+```{r liczba-klas}
+class_levels <- levels(iris$Spec)
+K <- length(class_levels)
+```
 
+W zbiorze występują `r K` klasy: `r paste(class_levels, collapse = ", ")`.
 
+Tworzymy macierz eksperymentu X (dodajemy kolumnę jedynek, aby uwzględnić wyraz wolny):
 
+```{r macierze-eksperymentu}
+X_test <- as.matrix(cbind(b_0 = 1, test[, 1:4]))
+X_learning <- as.matrix(cbind(b_0 = 1, learning[, 1:4]))
+knitr::kable(
+  as_report_table(head(X_learning)),
+  caption = "Fragment macierzy eksperymentu dla zbioru uczącego."
+)
+```
 
+Tworzymy macierz wskaźnikową Y:
 
+```{r macierze-wskaznikowe}
+Y_test <- diag(K)[test$Spec, ]
+Y_learning <- diag(K)[learning$Spec, ]
+colnames(Y_test) <- class_levels
+colnames(Y_learning) <- class_levels
+knitr::kable(
+  as_report_table(head(Y_learning)),
+  caption = "Fragment macierzy wskaźnikowej klas dla zbioru uczącego."
+)
+```
 
+Estymacja współczynników modelu, za pomocą metody najmniejszych kwadratów:
 
+$$ \hat{B} = \arg\min_B \left\|Y - XB\right\|^2 $$
+
+Jeśli macierz $X^\top X$ jest odwracalna, to:
+
+$$ \hat{B} = (X^\top X)^{-1}X^\top Y $$
+
+```{r estymacja-wspolczynnikow}
+B_hat <- solve(t(X_learning) %*% X_learning) %*% t(X_learning) %*% Y_learning
+knitr::kable(
+  as_report_table(B_hat),
+  caption = "Oszacowane współczynniki modelu liniowego."
+)
+```
+
+Wyznaczenie prognoz i konwersja na klasy:
+
+```{r prognozy-liniowe}
+Y_hat_learning <- X_learning %*% B_hat
+Y_hat_test <- X_test %*% B_hat
+knitr::kable(
+  as_report_table(head(Y_hat_learning)),
+  caption = "Fragment wartości wskaźników przewidzianych dla zbioru uczącego."
+)
+```
+
+$\hat{Y}$.
+
+```{r funkcja-wykres-predykcji}
+colors <- c("red", "green", "blue")
+plot_predictions <- function(data) {
+  op <- par(mfrow = c(1, 3), mar = c(2, 2, 2, 2))
+  on.exit(par(op))
+  for (cls in levels(data$Y)) {
+    rows <- data$Y == cls
+    x <- seq_len(sum(rows))
+
+    matplot(
+      x,
+      data$Y_hat[rows, ],
+      pch = c("1", "2", "3"),
+      col = colors,
+      xlab = "",
+      ylab = "Y_hat",
+      ylim = c(-0.5, 2),
+      main = paste0("Y = ", cls)
+    )
+
+    legend(
+      "topright",
+      legend = c("1 setosa", "2 versicolor", "3 virginica"),
+      col = colors,
+      bty = "n",
+      text.col = colors
+    )
+  }
+}
+```
+
+Podgląd predykcji dla zbioru uczącego przedstawiono na rys. \ref{fig:wykres-predykcji-uczacy}.
+
+```{r wykres-predykcji-uczacy, fig.width=6.7, fig.height=3, fig.cap="Wartości wskaźników klas przewidziane przez model bazowy dla zbioru uczącego."}
+plot_predictions(list(Y=learning$Spec, Y_hat=Y_hat_learning))
+```
+
+Analogiczny podgląd dla zbioru testowego przedstawiono na rys. \ref{fig:wykres-predykcji-testowy}.
+
+```{r wykres-predykcji-testowy, fig.width=6.7, fig.height=3, fig.cap="Wartości wskaźników klas przewidziane przez model bazowy dla zbioru testowego."}
+plot_predictions(list(Y=test$Spec, Y_hat=Y_hat_test))
+```
 
 ## Podpunkt (d): Ocena jakości modelu
+
 <!--
-Wyznacz macierz pomyek (ang. confusion matrix) oraz błąd klasyfikacji
+Wyznacz macierz pomyłek (ang. confusion matrix) oraz błąd klasyfikacji
 na zbiorze uczącym oraz zbiorze testowym. Spróbuj zilustrować/zbadać
 czy w tym przypadku obserwujemy zjawisko maskowania klas, o którym była
 mowa na wykładzie.
 -->
 
+Etykiety klas:
 
+```{r etykiety-prognoz}
+Y_learning_label <- learning$Spec
+Y_test_label <- test$Spec
 
+to_class_factor <- function(scores) {
+  factor(max.col(scores), levels = seq_len(K), labels = class_levels)
+}
 
+Y_hat_learning_label <- to_class_factor(Y_hat_learning)
+Y_hat_test_label <- to_class_factor(Y_hat_test)
+```
 
+```{r macierz-pomylek-uczacy, echo=FALSE}
+confusion_matrix_learning <- table(Y_learning_label, Y_hat_learning_label)
+knitr::kable(
+  confusion_matrix_learning,
+  caption = "Macierz pomyłek modelu bazowego dla zbioru uczącego."
+)
+```
 
+```{r blad-klasyfikacji-uczacy, include=FALSE}
+error_learning <- mean(Y_learning_label != Y_hat_learning_label)
+```
 
+Błąd klasyfikacji dla zbioru uczącego wynosi `r format_number(error_learning)`.
+
+```{r macierz-pomylek-testowy, echo=FALSE}
+confusion_matrix_test <- table(Y_test_label, Y_hat_test_label)
+knitr::kable(
+  confusion_matrix_test,
+  caption = "Macierz pomyłek modelu bazowego dla zbioru testowego."
+)
+```
+
+```{r blad-klasyfikacji-testowy, include=FALSE}
+error_test <- mean(Y_test_label != Y_hat_test_label)
+```
+
+Błąd klasyfikacji dla zbioru testowego wynosi `r format_number(error_test)`.
+
+Wykresy prognoz oraz macierze pomyłek pokazują, że model klasyfikuje
+bardzo dobrze klasę setosa. Przewidywane wartości dla gatunków versicolor
+i virginica są do siebie podobne, przez co część obserwacji jest przypisywana
+do sąsiedniej klasy. Można stwierdzić, że w tym przypadku nie obserwujemy pełnego
+zjawiska maskowania jednej z klas, ale jednak widać częściowe nakładanie się klas.
 
 ## Podpunkt (e) Budowa modelu liniowego dla rozszerzonej przestrzeni cech
 
@@ -102,16 +278,202 @@ PWSW, SLSW). Porównaj dokładność klasyfikacji dla obu przypadków i zinterpr
 otrzymane wyniki.
 -->
 
+Tym razem użyjemy bibliotecznych funkcji do stworzenia modelu liniowego.
+Utworzymy model zawierający wszystkie cechy bazowe oraz wszystkie składniki
+wielomianowe stopnia 2. Sprawdzimy również jaki model z wszystkich podzbiorów
+cech wielomianu najlepiej zachowuje się podczas treningu.
 
+```{r cechy-wielomianowe}
+make_poly_features <- function(df) {
+  data.frame(
+    SL = df$SL,
+    SW = df$SW,
+    PL = df$PL,
+    PW = df$PW,
+    SL2 = df$SL^2,
+    SW2 = df$SW^2,
+    PL2 = df$PL^2,
+    PW2 = df$PW^2,
+    SL_SW = df$SL * df$SW,
+    SL_PL = df$SL * df$PL,
+    SL_PW = df$SL * df$PW,
+    SW_PL = df$SW * df$PL,
+    SW_PW = df$SW * df$PW,
+    PL_PW = df$PL * df$PW
+  )
+}
 
+learning_poly <- make_poly_features(learning)
+test_poly <- make_poly_features(test)
 
+poly_model_all <- lm(Y_learning ~ ., data = learning_poly)
 
+Y_hat_learning_poly_all <- predict(poly_model_all, newdata = learning_poly)
+Y_hat_learning_label_poly_all <- to_class_factor(Y_hat_learning_poly_all)
 
+Y_hat_test_poly_all <- predict(poly_model_all, newdata = test_poly)
+Y_hat_test_label_poly_all <- to_class_factor(Y_hat_test_poly_all)
+```
+
+```{r macierz-pomylek-poly-all-uczacy, echo=FALSE}
+confusion_matrix_learning_poly_all <- table(Y_learning_label, Y_hat_learning_label_poly_all)
+knitr::kable(
+  confusion_matrix_learning_poly_all,
+  caption = "Macierz pomyłek modelu rozszerzonego dla zbioru uczącego."
+)
+```
+
+```{r blad-poly-all-uczacy, include=FALSE}
+error_learning_poly_all <- mean(Y_learning_label != Y_hat_learning_label_poly_all)
+```
+
+Błąd klasyfikacji dla modelu rozszerzonego ze wszystkimi składnikami na zbiorze
+uczącym wynosi `r format_number(error_learning_poly_all)`.
+
+```{r macierz-pomylek-poly-all-testowy, echo=FALSE}
+confusion_matrix_test_poly_all <- table(Y_test_label, Y_hat_test_label_poly_all)
+knitr::kable(
+  confusion_matrix_test_poly_all,
+  caption = "Macierz pomyłek modelu rozszerzonego dla zbioru testowego."
+)
+```
+
+```{r blad-poly-all-testowy, include=FALSE}
+error_test_poly_all <- mean(Y_test_label != Y_hat_test_label_poly_all)
+```
+
+Błąd klasyfikacji dla modelu rozszerzonego ze wszystkimi składnikami na zbiorze
+testowym wynosi `r format_number(error_test_poly_all)`.
+
+Dodatkowo sprawdzamy, czy da się uzyskać równie dobry lub lepszy wynik przy
+użyciu mniejszej liczby zmiennych.
+
+```{r wybor-podzbioru-cech}
+candidate_vars <- names(learning_poly)
+
+vars_subsets <- unlist(
+  lapply(seq_along(candidate_vars), function(k) {
+    combn(candidate_vars, k, simplify = FALSE)
+  }),
+  recursive = FALSE
+)
+
+results <- do.call(rbind, lapply(vars_subsets, function(vars) {
+  fit <- lm(Y_learning ~ ., data = learning_poly[, vars, drop = FALSE])
+  train_pred <- predict(fit, newdata = learning_poly[, vars, drop = FALSE])
+  train_pred_label <- to_class_factor(train_pred)
+
+  data.frame(
+    n_terms = length(vars),
+    subset = paste(vars, collapse = ", "),
+    error_learning = mean(Y_learning_label != train_pred_label),
+    stringsAsFactors = FALSE
+  )
+}))
+
+best_error <- results[order(results$error_learning), ]$error_learning[1]
+best_candidates <- results[results$error_learning == best_error, ]
+
+smallest_terms <- best_candidates[
+  order(best_candidates$n_terms), 
+]$n_terms[1]
+simplest_candidates <- best_candidates[
+  best_candidates$n_terms == smallest_terms, 
+]
+
+best_terms <- strsplit(simplest_candidates$subset[1], ", ")[[1]]
+
+best_poly_model <- lm(
+  Y_learning ~ ., 
+  data = learning_poly[, best_terms, drop = FALSE]
+)
+```
+
+Z najmniejszym błędem na zbiorze uczącym było `r nrow(best_candidates)` modeli.
+Najprostszy model spośród najlepszych to 
+
+```{r, include=FALSE}
+best_terms_latex <- gsub("_", " \\\\cdot ", best_terms)
+best_terms_latex <- paste(best_terms_latex, collapse = " + ")
+```
+
+$$
+Y \sim `r best_terms_latex`
+$$
+
+Wyliczanie predykcji dla zbioru uczącego i testowego:
+
+```{r prognozy-modelu-wybranego}
+Y_hat_learning_poly <- predict(
+  best_poly_model,
+  newdata = learning_poly[, best_terms, drop = FALSE]
+)
+Y_hat_learning_label_poly <- to_class_factor(Y_hat_learning_poly)
+
+Y_hat_test_poly <- predict(
+  best_poly_model,
+  newdata = test_poly[, best_terms, drop = FALSE]
+)
+Y_hat_test_label_poly <- to_class_factor(Y_hat_test_poly)
+```
+
+```{r macierz-pomylek-poly-uczacy, echo=FALSE}
+confusion_matrix_learning_poly <- table(Y_learning_label, Y_hat_learning_label_poly)
+knitr::kable(
+  confusion_matrix_learning_poly,
+  caption = "Macierz pomyłek wybranego modelu wielomianowego dla zbioru uczącego."
+)
+```
+
+```{r blad-poly-uczacy, include=FALSE}
+error_learning_poly <- mean(Y_learning_label != Y_hat_learning_label_poly)
+```
+
+Błąd klasyfikacji dla wybranego modelu wielomianowego na zbiorze uczącym wynosi
+`r format_number(error_learning_poly)`.
+
+```{r macierz-pomylek-poly-testowy, echo=FALSE}
+confusion_matrix_test_poly <- table(Y_test_label, Y_hat_test_label_poly)
+knitr::kable(
+  confusion_matrix_test_poly,
+  caption = "Macierz pomyłek wybranego modelu wielomianowego dla zbioru testowego."
+)
+```
+
+```{r blad-poly-testowy, include=FALSE}
+error_test_poly <- mean(Y_test_label != Y_hat_test_label_poly)
+```
+
+Błąd klasyfikacji dla wybranego modelu wielomianowego na zbiorze testowym wynosi
+`r format_number(error_test_poly)`.
+
+```{r porownanie-modeli, echo=FALSE}
+comparison_poly <- data.frame(
+  model = c("bazowy", "rozszerzony: wszystkie składniki", "rozszerzony: wybrany podzbiór"),
+  error_learning = c(error_learning, error_learning_poly_all, error_learning_poly),
+  error_test = c(error_test, error_test_poly_all, error_test_poly)
+)
+knitr::kable(
+  as_report_table(comparison_poly),
+  caption = "Porównanie błędów klasyfikacji modeli liniowych."
+)
+```
+
+Po rozszerzeniu przestrzeni cech o składniki wielomianowe stopnia 2 błąd
+klasyfikacji jest mniejszy niż dla modelu bazowego. Model rozszerzony lepiej
+opisuje nieliniowe zależności między cechami, dlatego daje lepszą dokładność
+klasyfikacji na zbiorze testowym.
+
+Porównując modele korzystające tylko z niepustych podzbiorów cech wielomianu,
+okazało się, że wiele z nich osiąga ten sam najlepszy błąd na zbiorze uczącym.
+Wybrano więc najprostszy z nich, który okazuje się być nawet lepszy niż model
+z wszystkimi składnikami wielomianowymi.
 
 
 # Zadanie 2: Porównanie metod klasyfikacji.
 
 ## Podpunkt (a): Wybór i zapoznanie się z danymi.
+
 <!--
 Zadanie wykonujemy dla jednego (wybranego) zbioru danych.
 
@@ -141,18 +503,8 @@ Należy m.in. ustalić:
 
 -->
 
-
-
-
-
-
-
-
-
-
-
-
 ## Podpunkt (b): Cel analizy.
+
 <!--
 Celem analizy jest zastosowanie poznanych algorytmów klasyfikacji
 i szczegółowe porównanie ich dokładności.
@@ -168,13 +520,8 @@ uwzględnione w analizie.
 
 -->
 
-
-
-
-
-
-
 ## Podpunkt (c): Wstępna analiza danych.
+
 <!--
 Wstępna analiza danych
 
@@ -196,16 +543,8 @@ danych, w tym:
   do różnych klas)?
 -->
 
-
-
-
-
-
-
-
-
-
 ## Podpunkt (d): Ocena dokładności klasyfikacji i porównanie metod.
+
 <!--
 
 - Porównaj dokładność klasyfikacji rozważanych algorytmów, dzieląc oryginalny
@@ -225,13 +564,8 @@ danych, w tym:
 
 -->
 
-
-
-
-
-
-
 ## Podpunkt (e): Różne parametry i różne podzbiory cech.
+
 <!--
 
 Przeprowadzając porównanie dokładności klasyfikacji (patrz podpunkt d),
@@ -250,14 +584,8 @@ uwzględnij:
 
 -->
 
-
-
-
-
-
-
-
 ## Podpunkt (f): Końcowe wnioski - podsumowanie.
+
 <!--
 
 Na podstawie przeprowadzonej analizy, spróbuj odpowiedzie¢ na następujące

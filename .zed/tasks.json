@@ -10,4 +10,9 @@
     "cwd": "${ZED_WORKTREE_ROOT}/l2",
     "command": "Rscript -e \"rmarkdown::render('ED_LISTA_02_zadanie_01_02_03_szablon_do_uzupelnienia.Rmd', output_format = 'pdf_document')\"",
   },
+  {
+    "label": "Compile l3 Rmd to PDF",
+    "cwd": "${ZED_WORKTREE_ROOT}/l3",
+    "command": "Rscript -e \"rmarkdown::render('ED_LISTA_03_zadanie_01_szablon_do_uzupelnienia.Rmd', output_format = 'pdf_document')\"",
+  },
 ]
