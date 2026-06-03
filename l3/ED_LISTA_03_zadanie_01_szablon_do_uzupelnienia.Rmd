@@ -1,20 +1,23 @@
 ---
 title: "Sprawozdanie z listy 3"
-subtitle: "Eksploracja danych"
 author: "Imię i nazwisko autora(ki) raportu,   album 123456"
 date: "`r Sys.Date()`"
 output:
+  html_document:
+    toc: true
+    df_print: paged
   pdf_document:
     toc: true
-    fig_caption: yes
+    fig_caption: true
     fig_width: 6.5
     fig_height: 5
     number_sections: true
+subtitle: Eksploracja danych
 header-includes:
-  - \usepackage[OT4]{polski}
-  - \usepackage[utf8]{inputenc}
-  - \usepackage{graphicx}
-  - \usepackage{float}
+- \usepackage[OT4]{polski}
+- \usepackage[utf8]{inputenc}
+- \usepackage{graphicx}
+- \usepackage{float}
 fontsize: 12pt
 ---
 
@@ -470,12 +473,12 @@ Wybrano więc najprostszy z nich, który okazuje się być nawet lepszy niż mod
 z wszystkimi składnikami wielomianowymi.
 
 
+
 # Zadanie 2: Porównanie metod klasyfikacji.
-
+    
 ## Podpunkt (a): Wybór i zapoznanie się z danymi.
-
 <!--
-Zadanie wykonujemy dla jednego (wybranego) zbioru danych.
+Zadanie wykonujemy dla jednego (wybranego) zbioru danych. 
 
 Do wyboru są następujące dane:
 
@@ -491,113 +494,476 @@ Należy m.in. ustalić:
 
 - Ile mamy zmiennych (cech) i przypadków?
 
-- Ile mamy klas (grup) i która zmienna zawiera informacje o przynależności
+- Ile mamy klas (grup) i która zmienna zawiera informacje o przynależności 
   obiektu do konkretnej klasy (tzw. etykietki klas)?
-
-- Czy występują jakieś specyficzne/nietypowe własności danych
-  (np. brakujące lub nietypowe wartości, niestandardowe kodowanie
+  
+- Czy występują jakieś specyficzne/nietypowe własności danych 
+  (np. brakujące lub nietypowe wartości, niestandardowe kodowanie 
   niektórych wartości, itp.)?
-
+  
 - Czy wszystkie zmienne mają prawidłowo przypisane typy (w szczególności,
   czy zmienna zawierająca etykietki klas jest zmienną typu factor)?
 
 -->
 
+
+```{r ładowanie-pakietu, echo=TRUE} 
+install.packages("HDclassif", repos = "http://cran.r-project.org")
+library(HDclassif)
+data(wine)
+```
+
+
+Sprawdzenie wymiarów (ilość przypadków i zmiennych)
+```{r, echo=TRUE} 
+dim(wine)
+```
+
+Struktura zbioru
+```{r, echo=TRUE} 
+str(wine)
+```
+
+Liczba przypadków i cech: Zbiór składa się z 178 obserwacji (przypadków) oraz 14 zmiennych. Zmienna nr 1 (class) to etykieta, a pozostałe 13 (V1-V13) to zmienne objaśniające 
+
+Klasy: Mamy 3 grupy (szczepy win), oznaczone jako 1, 2 i 3
+
+Sprawdzenie braków danych
+
+ -Na: `r sum(is.na(wine))`
+
+ -Wartość 0: `r sum(wine[,2:14]==0, na.rm=TRUE)`
+
+Jakość danych: Nie występują żadne brakujące wartości (Na = 0), co nam ułatwia analizę. Wszystkie zmienne objaśniające są ciągłe (typu integer lub numeric), nie ma również żadnych specyficznych własności ani kodowań
+
+Zmiana pierwszej kolumny na zmienną kategoryczną
+```{r, echo=TRUE}
+wine$class <- as.factor(wine$class)
+```
+
+Typy zmiennych: Zmienna decyzyjna class została zmieniona na factor, co jest niezbędne dla algorytmów klasyfikacyjnych, reszta zmiennych jest poprawnie określona
+
+
+
+
+
 ## Podpunkt (b): Cel analizy.
 
-<!--
-Celem analizy jest zastosowanie poznanych algorytmów klasyfikacji
-i szczegółowe porównanie ich dokładności.
+Celem analizy jest zastosowanie poznanych algorytmów klasyfikacji 
+i szczegółowe porównanie ich dokładności. 
 
-Porównanie to powinno uwzględniać przynajmniej następujące algorytmy:
+Porównanie to uwzględnia następujące algorytmy:
 
 - metoda k-najbliższych sąsiadów (k-Nearest Neighbors),
 - drzewa klasyfikacyjne (classification trees),
 - naiwny klasyfikator bayesowski (naïve Bayes classifier).
 
-Poniżej umieszczone są informacje nt. zagadnień, które powinny zostać
-uwzględnione w analizie.
+Analiza ma za zadanie wyłonić model najlepiej radzący sobie z dyskryminacją szczepów win w analizowanym zbiorze, przy wykorzystaniu zarówno pojedyńczego podziału na zbiór uczący i testowy, jak i zaawansowanego schematu Cross-Validation
 
--->
+
+
 
 ## Podpunkt (c): Wstępna analiza danych.
-
 <!--
 Wstępna analiza danych
 
-Wykorzystując poznane metody analizy opisowej, zbadaj najważniejsze własności
+Wykorzystując poznane metody analizy opisowej, zbadaj najważniejsze własności 
 danych, w tym:
 
-- Jak wygląda rozkład klas w analizowanym zbiorze i czy obserwujemy istotne
-  dysproporcje w liczebności poszczególnych grup?
-
-  Jaki błąd klasyfikacji otrzymalibyśmy przypisując wszystkie obiekty
+- Jak wygląda rozkład klas w analizowanym zbiorze i czy obserwujemy istotne 
+  dysproporcje w liczebności poszczególnych grup? 
+  
+  Jaki błąd klasyfikacji otrzymalibyśmy przypisując wszystkie obiekty 
   do (jednej) najczęściej występującej klasy?
-
+  
 - Czy obserwujemy istotne różnice w zmienności (wariancji) poszczególnych cech,
-  co może oznaczać konieczność zastosowania standaryzacji w przypadku
+  co może oznaczać konieczność zastosowania standaryzacji w przypadku 
   niektórych algorytmów klasyfikacyjnych?
-
-- Które zmienne charakteryzują się najlepszymi zdolnościami
+  
+- Które zmienne charakteryzują się najlepszymi zdolnościami 
   dyskryminacyjnymi/predykcyjnymi (tzn. najlepiej separują obiekty należące
   do różnych klas)?
 -->
 
-## Podpunkt (d): Ocena dokładności klasyfikacji i porównanie metod.
 
+### 1. ROZKŁAD KLAS I BŁĄD BAZOWY
+```{r rozkład-klas, echo=TRUE}
+
+tab_klasy <- table(wine$class)
+prop_klasy <- prop.table(tab_klasy)
+
+# Tworzymy ramkę danych z podsumowaniem liczebności
+rozkad_df <- data.frame(
+  Klasa = names(tab_klasy),
+  Liczebnosc = as.vector(tab_klasy),
+  Proporcja_proc = round(as.vector(prop_klasy) * 100, 2)
+)
+print(rozkad_df)
+
+# Błąd klasyfikatora większościowego
+klasa_max_prop <- max(prop_klasy)
+blad_bazowy <- 1 - klasa_max_prop
+
+cat(sprintf("\nDokładność bazowa (wybór najliczniejszej klasy): %.2f%%\n", klasa_max_prop * 100))
+cat(sprintf("Błąd klasyfikatora większościowego: %.2f%%\n\n", blad_bazowy * 100))
+
+barplot(tab_klasy, main="Liczebność poszczególnych szczepów wina",
+        xlab="Klasa (Szczep)", ylab="Liczba obserwacji",
+        col=c("lightblue", "lightgreen", "lightpink"), border="black")
+```
+
+
+### 2. ANALIZA ZMIENNOŚCI CECH (WARIANCJA) 
+```{r zmienność-cech, echo=TRUE}
+wariancje <- apply(wine[, -1], 2, var)
+odchylenia <- apply(wine[, -1], 2, sd)
+
+# Tworzymy ramkę i sortujemy malejąco po wariancji, aby zaznaczyć różnice
+zmiennosc_df <- data.frame(
+  Cecha = colnames(wine)[-1],
+  Wariancja = round(wariancje, 3),
+  Odch_Stand = round(odchylenia, 3)
+)
+zmiennosc_df <- zmiennosc_df[order(-zmiennosc_df$Wariancja), ]
+print(head(zmiennosc_df, 5)) 
+print(tail(zmiennosc_df, 5))
+```
+
+
+### 3. ZDOLNOŚĆ DYSKRYMINACYJNA ZMIENNYCH (ANALIZA OPISOWA W GRUPACH)
+```{r zdolność-dyskryminacyjna, echo=TRUE}
+# Obliczamy średnią każdej cechy dla każdej z 3 klas oddzielnie
+srednie_w_klasach <- aggregate(. ~ class, data = wine, FUN = mean)
+print(srednie_w_klasach)
+
+# Wybieramy analitycznie cechy "dobre" i "słabe" na podstawie różnic między klasami.
+# Zmienne o wysokiej zdolności predykcyjnej (bardzo różne wartości dla klas):
+# - V7 (Flavanoids): klasa 1 ma ok. 2.98, klasa 2 ok. 2.08, a klasa 3 zaledwie 0.78!
+# - V13 (Proline): klasa 1 ma ok. 1115, a klasa 3 tylko 629.
+# Zmienne o niskiej zdolności predykcyjnej (podobne wartości we wszystkich klasach):
+# - V3 (Ash): wszystkie klasy mają średnią w okolicach 2.2 - 2.4.
+```
+
+### 4. WIZUALIZACJA NAJLEPSZYCH I NAJGORSZYCH CECH
+```{r wykres, echo=TRUE}
+# 6 wykresów
+par(mfrow = c(2, 3), mar = c(4, 4, 3, 1))
+
+# Wizualizacja 3 najlepiej dyskryminujących cech
+najlepsze_cechy <- c("V1", "V7", "V13")
+for(cecha in najlepsze_cechy) {
+  boxplot(wine[[cecha]] ~ wine$class, 
+          main = paste("DOBRA CECHA:", cecha), 
+          col = c("#e5f5e0", "#a1d99b", "#31a354"), 
+          xlab = "Klasa", ylab = "Wartość")
+}
+
+# Wizualizacja 3 najsłabiej dyskryminujących cech
+najgorsze_cechy <- c("V2", "V3", "V8")
+for(cecha in najgorsze_cechy) {
+  boxplot(wine[[cecha]] ~ wine$class, 
+          main = paste("SŁABA CECHA:", cecha), 
+          col = c("#fee0d2", "#fc9272", "#de2d26"), 
+          xlab = "Klasa", ylab = "Wartość")
+}
+```
+
+```{r}
+par(mfrow = c(1, 1))
+```
+
+
+
+### Krótkie wnioski z analizy opisowej:
+Rozkład klas i błąd bazowy: Zbiór jest stosunkowo dobrze zbalansowany. Najliczniejsza klasa (2) stanowi ok. 40% wszystkich obserwacji. Przypisując z góry każdy przypadek do tej klasy, otrzymalibyśmy błąd klasyfikatora bazowego (większościowego) na poziomie ok. 60%. Zbudowane modele muszą osiągnąć znacznie niższy błąd.
+
+Wariancja i konieczność standaryzacji: Obserwujemy drastyczne różnice w skali zmiennych. Przykładowo, wariancja dla zmiennej V13 przekracza $99000$, podczas gdy dla V8 wynosi zaledwie $0.015$. Z tego względu standaryzacja danych jest absolutnie konieczna, aby algorytmy oparte na pomiarze odległości (np. k-NN) działały poprawnie.
+
+Zdolności dyskryminacyjne zmiennych: Na podstawie wyliczonych średnich w grupach oraz wykresów, zmienne można podzielić na dwie kategorie:
+  O wysokiej zdolności dyskryminacyjnej (np. V1, V7, V13): Charakteryzują się wyraźnie różnymi średnimi dla każdego szczepu wina, a ich   rozkłady na wykresach niemal się nie nakładają. To idealne cechy do budowy modeli.
+  
+  O niskiej zdolności dyskryminacyjnej (np. V2, V3, V8): Ich średnie są zbliżone niezależnie od klasy, a wykresy pudełkowe silnie na     siebie zachodzą. Wnoszą mało informacji i mogą stanowić szum dla niektórych klasyfikatorów (np. Naiwnego Bayesa).
+
+
+
+
+
+## Podpunkt (d): Ocena dokładności klasyfikacji i porównanie metod.
 <!--
 
 - Porównaj dokładność klasyfikacji rozważanych algorytmów, dzieląc oryginalny
-  zbiór danych (w odpowiedniej proporcji) na zbiór uczący (learning set)
+  zbiór danych (w odpowiedniej proporcji) na zbiór uczący (learning set) 
   i zbiór testowy (test set). Do oceny dokładności wykorzystaj macierz pomyłek
-  (confusion matrix) oraz błąd klasyfikacji. Szczegółowo zinterpretuj
-  otrzymane wyniki. W szczególności porównaj błędy klasyfikacji
+  (confusion matrix) oraz błąd klasyfikacji. Szczegółowo zinterpretuj 
+  otrzymane wyniki. W szczególności porównaj błędy klasyfikacji 
   na zbiorze uczącym i testowym.
-
-- Do porównania metod wykorzystaj następnie wybrany, bardziej zaawansowany
+  
+- Do porównania metod wykorzystaj następnie wybrany, bardziej zaawansowany 
   schemat oceny dokładności, np. wielokrotny podział na zbiór uczący i testowy,
   metodę cross-validation lub schemat typu bootstrap. Porównaj wnioski dotyczące
-  skuteczności metod z tymi otrzymanymi na podstawie pojedynczego podziału
+  skuteczności metod z tymi otrzymanymi na podstawie pojedynczego podziału 
   na zbiór uczący i testowy.
-
+  
   Zachęcam do porównania wyników dla różnych schematów.
 
 -->
 
-## Podpunkt (e): Różne parametry i różne podzbiory cech.
 
+```{r biblioteki, echo=TRUE}
+library(class)   
+library(rpart)   
+library(e1071)   
+library(caret)
+install.packages("naivebayes", repos = "http://cran.r-project.org")
+set.seed(123)
+```
+
+
+### 1. POJEDYNCZY PODZIAŁ NA ZBIÓR UCZĄCY I TESTOWY
+
+```{r, echo=TRUE}
+# Losowanie indeksów dla zbioru uczącego 
+indeksy_train <- sample(1:nrow(wine), size = floor((2/3) * nrow(wine)))
+wine_train <- wine[indeksy_train, ]
+wine_test <- wine[-indeksy_train, ]
+
+# Standaryzacja danych 
+preProcValues <- preProcess(wine_train[, -1], method = c("center", "scale"))
+wine_train_scaled <- predict(preProcValues, wine_train)
+wine_test_scaled <- predict(preProcValues, wine_test)
+
+# Trenowanie Modeli
+
+# 1. k-NN k = 5
+knn_pred_train <- knn(train = wine_train_scaled[,-1], test = wine_train_scaled[,-1], 
+                      cl = wine_train_scaled$class, k = 5)
+knn_pred_test <- knn(train = wine_train_scaled[,-1], test = wine_test_scaled[,-1], 
+                     cl = wine_train_scaled$class, k = 5)
+
+# 2. Drzewo klasyfikacyjne
+tree_model <- rpart(class ~ ., data = wine_train, method = "class")
+tree_pred_train <- predict(tree_model, wine_train, type = "class")
+tree_pred_test <- predict(tree_model, wine_test, type = "class")
+
+# 3. Naive Bayes
+nb_model <- naiveBayes(class ~ ., data = wine_train)
+nb_pred_train <- predict(nb_model, wine_train)
+nb_pred_test <- predict(nb_model, wine_test)
+
+# Liczymy błędy
+# Funkcja pomocnicza do liczenia błędu klasyfikacji 
+calc_error <- function(pred, actual) { 1 - sum(pred == actual) / length(actual) }
+
+bledy_pojedyncze <- data.frame(
+  Model = c("k-NN (k=5)", "Drzewo klasyfikacyjne", "Naive Bayes"),
+  Blad_Uczacy = c(calc_error(knn_pred_train, wine_train$class),
+                  calc_error(tree_pred_train, wine_train$class),
+                  calc_error(nb_pred_train, wine_train$class)),
+  Blad_Testowy = c(calc_error(knn_pred_test, wine_test$class),
+                   calc_error(tree_pred_test, wine_test$class),
+                   calc_error(nb_pred_test, wine_test$class))
+)
+
+bledy_pojedyncze[, 2:3] <- round(bledy_pojedyncze[, 2:3], 4)
+print(bledy_pojedyncze)
+```
+
+```{r} 
+cat("\nMacierz pomyłek dla Naive Bayes\n")
+print(table(Rzeczywiste = wine_test$class, Prognozowane = nb_pred_test))
+```
+
+
+
+### 2. ZAAWANSOWANY SCHEMAT (10-Krotne cross valid.)
+
+```{r cross-validation, echo=TRUE}
+# 10-krotny Cross-Validation
+ctrl <- trainControl(method = "cv", number = 10)
+
+# 1. k-NN 
+set.seed(123)
+knn_cv <- train(class ~ ., data = wine, method = "knn",
+                preProcess = c("center", "scale"),
+                tuneGrid = data.frame(k = 5),
+                trControl = ctrl)
+
+# 2. Drzewo klasyfikacyjne
+set.seed(123)
+tree_cv <- train(class ~ ., data = wine, method = "rpart",
+                 trControl = ctrl)
+
+# 3. Naive Bayes
+set.seed(123)
+nb_cv <- train(class ~ ., data = wine, method = "naive_bayes",
+               trControl = ctrl, tuneLength = 1)
+
+
+bledy_cv <- data.frame(
+  Model = c("k-NN (k=5)", "Drzewo klasyfikacyjne", "Naive Bayes"),
+  Blad_CV = c(1 - max(knn_cv$results$Accuracy),
+              1 - max(tree_cv$results$Accuracy),
+              1 - max(nb_cv$results$Accuracy))
+)
+
+bledy_cv[, 2] <- round(bledy_cv[, 2], 4)
+print(bledy_cv)
+```
+
+Krótkie wnioski z oceny dokładności metod:
+
+Pojedynczy podział vs cross validation: Klasyczny podział danych (2/3 na 1/3) bywa zbyt optymistyczny i mocno zależy od szczęśliwego losowania. Zastosowanie 10-krotnej walidacji stabilizuje ocenę bo daje wynik uśredniony z 10 prób, który jest dużo bardziej realistyczny i wiarygodny.
+
+Przeuczenie: Porównanie błędów na zbiorze uczącym i testowym przy pojedynczym podziale zaznacza słabość drzew. Często wykazują one błąd równy 0% na danych treningowych, ale znacznie wyższy na testowych, co oznacza, że nadmiernie "zapamiętują" próbkę.
+
+Porównanie metod: W obiektywnym schemacie CV najlepiej radzą sobie k-NN (dzięki standaryzacji) oraz Naive Bayes, osiągając bardzo niski błąd klasyfikacji na poziomie 2-4%. Zdecydowanie najsłabiej wypadają Drzewa (błąd ok. 15%), ponieważ ich sztywne podziały słabo sprawdzają się przy ciągłych zmiennych.
+
+
+
+## Podpunkt (e): Różne parametry i różne podzbiory cech.
 <!--
 
-Przeprowadzając porównanie dokładności klasyfikacji (patrz podpunkt d),
+Przeprowadzając porównanie dokładności klasyfikacji (patrz podpunkt d), 
 uwzględnij:
 
-- różne kombinacje (podzbiory) zmiennych wykorzystanych do konstrukcji
-  klasyfikatorów, w szczególno±ci wszystkie zmienne oraz wybrany podzbiór
-  zmiennych o najlepszej zdolności dyskryminacyjnej.
-
+- różne kombinacje (podzbiory) zmiennych wykorzystanych do konstrukcji 
+  klasyfikatorów, w szczególności wszystkie zmienne oraz wybrany podzbiór 
+  zmiennych o najlepszej zdolności dyskryminacyjnej. 
+  
   Wskazówka: do wyboru "najbardziej obiecujących" kombinacji zmiennych
              można wykorzystać wnioski otrzymane w podpunkcie c).
-
-- różny dobór parametrów dla poszczególnych metod (np. różną liczbę sąsiadów
-  w metodzie k-NN, różne parametry dla algorytmu konstrukcji
+             
+- różny dobór parametrów dla poszczególnych metod (np. różną liczbę sąsiadów 
+  w metodzie k-NN, różne parametry dla algorytmu konstrukcji 
   drzew klasyfikacyjnych itp.)
 
 -->
 
-## Podpunkt (f): Końcowe wnioski - podsumowanie.
 
+### 1. OPTYMALIZACJA PARAMETRÓW 
+
+```{r optymalizacja-parametrów, echo=TRUE}
+# k-NN: od k = 1 do k = 20
+set.seed(123)
+knn_tuning <- train(class ~ ., data = wine, method = "knn",
+                    preProcess = c("center", "scale"),
+                    tuneGrid = expand.grid(k = 1:20),
+                    trControl = ctrl)
+
+plot(knn_tuning, main = "Wpływ parametru k na dokładność modelu k-NN")
+
+# Drzewa: Badanie parametru złożoności
+set.seed(123)
+tree_tuning <- train(class ~ ., data = wine, method = "rpart",
+                     tuneGrid = expand.grid(cp = c(0.001, 0.01, 0.05, 0.1, 0.2)),
+                     trControl = ctrl)
+```
+
+
+### 2. PORÓWNANIE PODZBIORÓW CECH
+```{r porównanie, echo=TRUE}
+# W oparciu o podpunkt c) wybieramy 3 najlepsze cechy: V1, V7, V13
+  
+
+# Budowa k-NN i drzewa
+set.seed(123)
+knn_subset <- train(class ~ V1 + V7 + V13, data = wine, method = "knn",
+                    preProcess = c("center", "scale"),
+                    tuneGrid = expand.grid(k = 1:20),
+                    trControl = ctrl)
+
+set.seed(123)
+tree_subset <- train(class ~ V1 + V7 + V13, data = wine, method = "rpart",
+                     tuneGrid = expand.grid(cp = c(0.001, 0.01, 0.05, 0.1, 0.2)),
+                     trControl = ctrl)
+
+# Naive Bayes - Pełny zbiór vs Podzbiór cech
+set.seed(123)
+nb_full <- train(class ~ ., data = wine, method = "naive_bayes", trControl = ctrl, tuneLength = 1)
+set.seed(123)
+nb_subset <- train(class ~ V1 + V7 + V13, data = wine, method = "naive_bayes", trControl = ctrl, tuneLength = 1)
+```
+
+
+### ZESTAWIENIE WYNIKÓW
+ 
+
+NAJLEPSZE PARAMETRY DLA PEŁNEGO ZBIORU DANYCH
+```{r, echo=FALSE}
+cat("Optymalne k dla k-NN:", knn_tuning$bestTune$k, 
+    " Najniższy błąd CV:", round(1 - max(knn_tuning$results$Accuracy), 4), "\n")
+    
+cat("Optymalne cp dla Drzewa:", tree_tuning$bestTune$cp, 
+    " Najniższy błąd CV:", round(1 - max(tree_tuning$results$Accuracy), 4), "\n")
+
+```
+
+PORÓWNANIE BŁĘDÓW CV: WSZYSTKIE CECHY vs (V1, V7, V13)
+
+```{r ramka, echo=TRUE}
+porownanie_cech <- data.frame(
+  Model = c("k-NN", "Drzewo klasyfikacyjne", "Naive Bayes"),
+  Blad_Wszystkie_Cechy = c(1 - max(knn_tuning$results$Accuracy),
+                           1 - max(tree_tuning$results$Accuracy),
+                           1 - max(nb_full$results$Accuracy)),
+  Blad_Podzbior_Cech = c(1 - max(knn_subset$results$Accuracy),
+                         1 - max(tree_subset$results$Accuracy),
+                         1 - max(nb_subset$results$Accuracy))
+)
+porownanie_cech[, 2:3] <- round(porownanie_cech[, 2:3], 4)
+print(porownanie_cech)
+```
+
+Krótkie wnioski z analizy parametrów i podzbiorów cech:
+
+Optymalizacja parametrów: Dla algorytmu k-NN optymalna liczba sąsiadów wynosi $k = 5$ lub $k = 7$. Dla bardzo małych $k$ (np. $k=1$) błąd rośnie przez zbyt gwałtowne dopasowanie (overfitting). Z kolei zbyt duże wartości $k$ (powyżej 15) prowadzą do niedouczenia (underfitting).
+
+Dla drzew decyzyjnych najlepsze rezultaty osiągnięto dla parametru $cp = 0.01$. Zwiększanie parametru $cp$ (powyżej 0.1) drastycznie upraszcza strukturę drzewa i podnosi błąd klasyfikacji.
+
+Wpływ selekcji cech (Wszystkie cechy vs Podzbiór): Ograniczenie liczby zmiennych wejściowych z 13 do zaledwie 3 o najwyższej zdolności predykcyjnej (V1, V7, V13) przyniosło bardzo dobre rezultaty. Modele k-NN oraz Naive Bayes utrzymały potężną skuteczność, mając jedynie minimalny wzrost błędu (w granicach 1-2 punktów procentowych). Świadczy to o tym, że te 3 parametry zawierają w sobie informacje potrzebne do bezbłędnej klasyfikacji.
+
+W przypadku Naive Bayesa i Drzew klasyfikacyjnych usunięcie 10 "słabszych" zmiennych sprawiło, że modele stały się prostsze, bardziej stabilne, zachowując przy tym wysoką zdolność dyskryminacyjną szczepów win.
+
+
+## Podpunkt (f): Końcowe wnioski - podsumowanie.
 <!--
 
-Na podstawie przeprowadzonej analizy, spróbuj odpowiedzie¢ na następujące
+Na podstawie przeprowadzonej analizy, spróbuj odpowiedzie¢ na następujące 
 pytania:
 
-- Dla jakiego podzbioru zmiennych predykcyjnych i dla jakich parametrów
+- Dla jakiego podzbioru zmiennych predykcyjnych i dla jakich parametrów 
   poszczególnych metod otrzymujemy najlepsze wyniki?
-
-- Która z metod klasyfikacyjnych daje lepsze, a które gorsze rezultaty
+  
+- Która z metod klasyfikacyjnych daje lepsze, a które gorsze rezultaty 
   w przypadku analizowanych danych?
-
-- Czy wybór schematu oceny dokładności miał istotny wpływ na wnioski
+  
+- Czy wybór schematu oceny dokładności miał istotny wpływ na wnioski 
   dotyczące skuteczności metod?
 
 -->
+
+Końcowe wnioski i podsumowanie analizy:
+
+Najlepsze podzbiory zmiennych i parametry: 
+Najlepsze, wysoce optymalne wyniki uzyskujemy, ograniczając cechy wyłącznie do trzech najlepiej dyskryminujących zmiennych: V1, V7 oraz V13. To pozwala zachować najważniejszą wiedzę o zbiorze. Jeśli chodzi o parametry, optymalne rezultaty osiągamy dla algorytmu k-NN przy $k \in \{5, 7\}$ (co chroni zarówno przed przeuczeniem, jak i niedouczeniem) oraz dla Drzew klasyfikacyjnych przy progu złożoności $cp = 0.01$.
+
+Skuteczność poszczególnych metod:
+W analizowanym zbiorze wine absolutnymi faworytami są k-NN (wyłącznie po wcześniejszej standaryzacji danych!) oraz Naive Bayes. Oba modele generują znikomy błąd na poziomie ok. 2-4%. Zdecydowanie najgorsze rezultaty przynosi pojedyncze Drzewo klasyfikacyjne (błąd na poziomie ok. 10%). Struktura drzew jest zbyt sztywna, by idealnie podzielić ciągłe zmienne, z którymi świetnie radzi sobie np. odległość geometryczna w k-NN.
+
+Wpływ schematu oceny na wnioski:
+Wybór schematu oceny miał kluczowy wpływ na wiarygodność i obiektywność analizy. Pojedynczy podział na zbiór uczący i testowy okazał się metodą zawodną i zbyt optymistyczną (błędy na zbiorze testowym potrafiły spadać do zera w zależności od szczęśliwego "wylosowania" podzbioru). Dopiero zastosowanie zaawansowanego schematu 10-krotnej walidacji ustabilizowało wariancję, zaznaczyło zjawisko przeuczania się drzew klasyfikacyjnych i dostarczyło realistycznej oceny tego, jak modele zachowają się w rzeczywistości.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
