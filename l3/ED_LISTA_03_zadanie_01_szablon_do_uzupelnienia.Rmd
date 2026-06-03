@@ -647,7 +647,7 @@ print(srednie_w_klasach)
 ### 4. WIZUALIZACJA NAJLEPSZYCH I NAJGORSZYCH CECH
 ```{r wykres, echo=TRUE}
 # 6 wykresów
-par(mfrow = c(2, 3), mar = c(4, 4, 3, 1))
+par(mfrow = c(2, 3), mar = c(4, 4, 3, 1), oma = c(0, 0, 3, 0))
 
 # Wizualizacja 3 najlepiej dyskryminujących cech
 najlepsze_cechy <- c("V1", "V7", "V13")
@@ -666,6 +666,8 @@ for(cecha in najgorsze_cechy) {
           col = c("#fee0d2", "#fc9272", "#de2d26"), 
           xlab = "Klasa", ylab = "Wartość")
 }
+mtext("Zdolność dyskryminacyjna cech zbioru Wine", side = 3, outer = TRUE, cex = 1.3, font = 2)
+
 ```
 
 ```{r}
