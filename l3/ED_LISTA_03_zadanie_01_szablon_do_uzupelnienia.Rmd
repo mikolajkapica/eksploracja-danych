@@ -579,7 +579,7 @@ Porównanie to uwzględnia następujące algorytmy:
 
 - metoda k-najbliższych sąsiadów (k-Nearest Neighbors),
 - drzewa klasyfikacyjne (classification trees),
-- naiwny klasyfikator bayesowski (naïve Bayes classifier).
+- naiwny klasyfikator bayesowski (naive Bayes classifier).
 
 Analiza ma za zadanie wyłonić model najlepiej radzący sobie z dyskryminacją szczepów win w analizowanym zbiorze, przy wykorzystaniu zarówno pojedyńczego podziału na zbiór uczący i testowy, jak i zaawansowanego schematu Cross-Validation
 
