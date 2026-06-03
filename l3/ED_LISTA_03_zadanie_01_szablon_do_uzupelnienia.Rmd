@@ -1,6 +1,7 @@
 ---
 title: "Sprawozdanie z listy 3"
-author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+subtitle: "Eksploracja danych"
+author: "Jan Bryłka (287379), Mikołaj Kapica (272729)"
 date: "`r Sys.Date()`"
 output:
   html_document:
