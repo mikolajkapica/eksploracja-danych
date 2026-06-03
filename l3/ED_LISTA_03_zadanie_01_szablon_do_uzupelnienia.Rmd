@@ -348,6 +348,12 @@ error_test_poly_all <- mean(Y_test_label != Y_hat_test_label_poly_all)
 Błąd klasyfikacji dla modelu rozszerzonego ze wszystkimi składnikami na zbiorze
 testowym wynosi `r format_number(error_test_poly_all)`.
 
+Podgląd predykcji tego modelu dla zbioru testowego przedstawiono na rys. \ref{fig:wykres-predykcji-poly-all-testowy}.
+
+```{r wykres-predykcji-poly-all-testowy, fig.width=6.7, fig.height=3, fig.cap="Wartości wskaźników klas przewidziane przez model wielomianowy ze wszystkimi składnikami dla zbioru testowego."}
+plot_predictions(list(Y=test$Spec, Y_hat=Y_hat_test_poly_all))
+```
+
 Dodatkowo sprawdzamy, czy da się uzyskać równie dobry lub lepszy wynik przy
 użyciu mniejszej liczby zmiennych.
 
@@ -449,6 +455,12 @@ error_test_poly <- mean(Y_test_label != Y_hat_test_label_poly)
 
 Błąd klasyfikacji dla wybranego modelu wielomianowego na zbiorze testowym wynosi
 `r format_number(error_test_poly)`.
+
+Podgląd predykcji wybranego modelu wielomianowego dla zbioru testowego przedstawiono na rys. \ref{fig:wykres-predykcji-poly-testowy}.
+
+```{r wykres-predykcji-poly-testowy, fig.width=6.7, fig.height=3, fig.cap="Wartości wskaźników klas przewidziane przez wybrany model wielomianowy dla zbioru testowego."}
+plot_predictions(list(Y=test$Spec, Y_hat=Y_hat_test_poly))
+```
 
 ```{r porownanie-modeli, echo=FALSE}
 comparison_poly <- data.frame(
