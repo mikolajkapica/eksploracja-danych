@@ -719,7 +719,7 @@ set.seed(123)
 ```
 
 
-### 1. POJEDYNCZY PODZIAŁ NA ZBIÓR UCZĄCY I TESTOWY
+### 1. POJEDYNCZY PODZIAŁ NA ZBIÓR UCZĄCY I TESTOWY (2/3 do 1/3)
 
 ```{r, echo=TRUE}
 # Losowanie indeksów dla zbioru uczącego 
