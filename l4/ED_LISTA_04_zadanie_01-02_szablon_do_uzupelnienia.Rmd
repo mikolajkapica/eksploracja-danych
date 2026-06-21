@@ -1,0 +1,212 @@
+---
+title: "Sprawozdanie z listy 4"
+subtitle: "Eksploracja danych"
+author: "Imię i nazwisko autora(ki) raportu,   album 123456"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    fig_caption: yes
+    fig_width: 6.5 
+    fig_height: 5 
+    number_sections: true
+header-includes:
+   - \usepackage[OT4]{polski}
+   - \usepackage[utf8]{inputenc}
+   - \usepackage{graphicx}
+   - \usepackage{float}
+fontsize: 12pt 
+---
+
+    
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "", fig.align = "center")
+    
+library(xtable) # do tworzenia tabel texowych w pdf
+library(arules) # zawiera funkcję discretize() do zadania 1
+library(e1071)  # zawiera funkcję compareMatchedClasses() do zadania 1
+```
+    
+    
+# Zadanie 1: Zaawansowane metody klasyfikacji (kontynuacja zad.2 z listy nr 3).
+    
+## Podpunkt (a): Rodziny klasyfikatorów/uczenie zespołowe (ang. ensemble learning).
+<!--
+- Zastosuj przynajmniej dwa algorytmy typu ensemble learning 
+  (tzn. takie metody jak bagging, boosting i random forest) 
+  do konstrukcji reguł klasyfikacyjnych oraz zbadaj ich dokładność.
+
+  Czy otrzymujemy istotną redukcję błędu klasyfikacji w porównaniu 
+  do klasyfikatora bazowego (tj. pojedynczego drzewa klasyfikacyjnego)? 
+
+  Czy występują istotne różnice w dokładności klasyfikacji pomiędzy 
+  różnymi metodami konstrukcji klasyfikatorów złożonych?
+-->
+
+
+
+
+
+
+
+
+## Podpunkt (b): Metoda wektorów nośnych (SVM)
+<!-- 
+- Wykorzystując algorytm SVM, zbuduj klasyfikatory dla różnych funkcji jądrowych 
+  (np.jądro liniowe, wielomianowe i radialne) i porównaj ich skuteczność. 
+  Czy i w jakim stopniu wybór funkcji jądrowej oraz wybór parametru kosztu C 
+  wpływa na dokładność metody SVM?
+  
+– Dla jądra radialnego postaraj się „dostroić” jednocześnie parametry γ i C. 
+  Porównaj dokładność klasyfikacji dla modelu z optymalnie wybranymi parametrami
+  oraz modelu skonstruowanego dla domyślnych parametrów. 
+  Czy optymalizacja parametrów pozwoliła na poprawę skuteczności skonstruowanego
+  klasyfikatora?
+-->
+
+
+
+
+
+
+
+
+
+## Podpunkt (c): Porównanie skuteczności metod
+<!--
+- Porównując wyniki uzyskane w podpunktach a) i b), postaraj się rozstrzygnąć, 
+  która z rozważanych metod wykazała najlepszą skuteczność.
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Zadanie 2: Analiza skupień – algorytmy grupujące i hierarchiczne.
+    
+## Podpunkt (a): Wybór i przygotowanie danych.
+<!--
+– Do analizy wybieramy jeden ze zbiorów wymienionych w zad.2/lista 3. 
+  Uwaga: Można wybrać ten sam albo inny zbiór niż w przypadku porównywania 
+  metod klasyfikacji.
+
+– Aby ułatwić wizualizację wyników, w przypadku „większych” danych losujemy 
+  podzbiór   zawierający 200 rekordów (wierszy).
+  
+– Przed zastosowaniem metod analizy skupień usuwamy zmienną grupującą 
+  zawierającą etykietki klas (grup). Zmienna ta powinna być jednak później 
+  wykorzystana do oceny jakości grupowania (→ zewnętrzne wskaźniki walidacyjne).
+  
+– Postaraj się rozstrzygnąć, czy konieczne będzie zastosowanie standaryzacji 
+  przed wyznaczeniem macierzy odległości/odmienności.
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+## Podpunkt (b): Wizualizacja wyników grupowania.
+<!--
+Przyjmując liczbę skupień K równą rzeczywistej liczbie klas:
+
+– Zilustruj otrzymane wyniki (podział na skupienia) na wykresach rozrzutu, zaznaczając (np.
+  różnymi kolorami) przynależność do poszczególnych skupisk. Dodatkowo, uzupełnij wykresy
+  o informacje nt. rzeczywistej przynależności obiektów do grup/klas (np. różne kolory mogą
+  oznaczać różne skupienia, a różne symbole – przynależność do klas).
+  
+    ∗ Wskazówka 1: Aby przedstawić dane na dwuwymiarowym wykresie rozproszenia, 
+                   można wykorzystać odpowiednią metodę redukcji wymiaru 
+                   (np. PCA lub MDS).
+
+    ∗ Wskazówka 2: W przypadku algorytmu hierarchicznego, aby otrzymać partycję 
+                   dla ustalonej liczby skupień K można wykorzystać funkcję 
+                   cutree().
+                   
+– W przypadku metody hierarchicznej porównaj dendrogramy otrzymane dla 
+  różnych metod łączenia skupień (ang. linkage methods) 
+  
+  Dla chętnych: można zastosować także odpowiednie kolorowanie liści 
+  dendrogramów, zgodnie z rzeczywistą przynależnością obiektów do klas.
+  
+– Co można powiedzieć o podstawowych własnościach otrzymanych skupień 
+  (np. jednorodność/zwartość, separacja itp.)?
+  
+– Czy i w jakim stopniu otrzymany podział na klastry zgadza się z rzeczywistą 
+  przynależnością obiektów do klas?
+-->
+
+
+
+
+
+
+
+## Podpunkt (c): Ocena jakości grupowania. Wybór optymalnej liczby skupień i porównanie metod.
+<!--
+Dla ustalonego zakresu liczby skupień (K ∈ {2, 3, . . . , K.max}) wykonaj 
+poniższe kroki:
+
+– wskaźniki wewnętrzne: Wykorzystaj średnią wartość indeksu silhouette 
+  do porównania wyników otrzymanych dla różnych algorytmów analizy skupień 
+  (np. algorytmy PAM i AGNES) oraz różnej liczby skupień K.
+  
+– wskaźniki zewnętrzne: Wykorzystaj wybraną miarę zgodności dwóch partycji 
+  (np. funkcja matchClasses(){e1071}) do porównania wyników grupowania 
+  z rzeczywistą przynależnością do klas.
+  
+Na podstawie otrzymanych wyników spróbuj rozstrzygnąć, który algorytm lepiej 
+poradził sobie z grupowaniem danych oraz jaka liczba klastrów jest optymalna.
+-->
+
+
+
+
+
+
+
+
+
+
+## Podpunkt (d): Interpretacja wyników grupowania – charakterystyki skupień.
+<!--
+– Wykorzystując wnioski z poprzedniego punktu, wyznacz podział na skupienia 
+  dla optymalnej liczby skupień K.
+
+– Analizując podstawowe charakterystyki poszczególnych cech, zbadaj czym 
+  wyróżniają się obiekty należące do danego skupienia (np. dla obiektów 
+  należących do poszczególnych skupień można wyznaczyć średnie wartości cech, 
+  porównać wykresy pudełkowe itp.).
+  
+– W przypadku metody PAM sprawdź także, które obiekty są medoidami 
+  (reprezentantami skupień) i co je wyróżnia.
+-->
+
+
+
+
+
+
+
+
+
+
+
+
